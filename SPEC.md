@@ -12,13 +12,14 @@
 
 | 功能 | 說明 | 詳細規格 |
 |---|---|---|
-| Phase 0 — App Bootstrap | 啟動順序、single instance、tray、安全設定 | [specs/phase0-bootstrap.md](specs/phase0-bootstrap.md) |
-| Phase 1 — 單字查詢面板 | 顯示意思、IPA、詞性、例句 | [specs/phase1-lookup.md](specs/phase1-lookup.md) |
-| Phase 2 — 全域快捷鍵觸發 | 複製單字後按快捷鍵彈出查詢視窗 | [specs/phase2-hotkey.md](specs/phase2-hotkey.md) |
-| Phase 3 — Chatbot | 查詢結果下方的對話介面 | [specs/phase3-chatbot.md](specs/phase3-chatbot.md) |
-| Phase 4 — Setup Wizard | 引導使用者下載 GGUF 模型 | [specs/phase4-setup-wizard.md](specs/phase4-setup-wizard.md) |
-| Phase 5 — 設定面板 | 快捷鍵、模型、LLM 參數、語言 | [specs/phase5-settings.md](specs/phase5-settings.md) |
-| Phase 6 — 打包與發布 | electron-builder 打包、發布確認清單 | [specs/phase6-packaging.md](specs/phase6-packaging.md) |
+| Phase 0 — 專案初始化 | npm create、目錄結構、資料目錄 | [specs/phase0-init.md](specs/phase0-init.md) |
+| Phase 1 — App Bootstrap | 啟動順序、single instance、tray、安全設定 | [specs/phase1-bootstrap.md](specs/phase1-bootstrap.md) |
+| Phase 2 — 單字查詢面板 | 顯示意思、IPA、詞性、例句 | [specs/phase2-lookup.md](specs/phase2-lookup.md) |
+| Phase 3 — 全域快捷鍵觸發 | 複製單字後按快捷鍵彈出查詢視窗 | [specs/phase3-hotkey.md](specs/phase3-hotkey.md) |
+| Phase 4 — Chatbot | 查詢結果下方的對話介面 | [specs/phase4-chatbot.md](specs/phase4-chatbot.md) |
+| Phase 5 — Setup Wizard | 引導使用者下載 GGUF 模型 | [specs/phase5-setup-wizard.md](specs/phase5-setup-wizard.md) |
+| Phase 6 — 設定面板 | 快捷鍵、模型、LLM 參數、語言 | [specs/phase6-settings.md](specs/phase6-settings.md) |
+| Phase 7 — 打包與發布 | electron-builder 打包、發布確認清單 | [specs/phase7-packaging.md](specs/phase7-packaging.md) |
 
 ---
 
@@ -63,37 +64,14 @@
 
 ---
 
-## 初始化
-
-```bash
-npm create @quick-start/electron@latest lexicon -- --template=vanilla-ts
-```
-
-使用 **electron-vite** + TypeScript。實際目錄結構以 CLI 產生結果為準，以下為預計加入的業務模組：
-
-```
-src/main/
-├── llm.ts        # node-llama-cpp 封裝、對話記錄管理
-├── prompts.ts    # System prompt 常數
-├── hotkey.ts     # globalShortcut 註冊
-├── tray.ts       # electron.Tray 系統匣
-└── config.ts     # 設定讀寫（JSON）
-
-src/renderer/     # 各視窗的 HTML + TypeScript
-                  # 多頁面結構（popup / settings / setup）
-```
-
----
-
 ## 資料儲存
 
 所有使用者資料儲存於 `%APPDATA%\Lexicon\`：
 
 ```
 %APPDATA%\Lexicon\
-├── models\          # 下載的 GGUF 模型檔案
-├── config.json      # 使用者設定
-└── history.json     # （選用）單字查詢記錄
+├── models\      # 下載的 GGUF 模型檔案
+└── config.json  # 使用者設定
 ```
 
 ---

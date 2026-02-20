@@ -1,4 +1,4 @@
-# Phase 3 — Chatbot 介面
+# Phase 4 — Chatbot 介面
 
 ## 概述
 
@@ -27,7 +27,7 @@ Keep answers concise and practical. Use examples when helpful. If the user asks 
 ```
 ┌──────────────────────────────────────┐  ← 視窗（480px 寬）
 │                                      │
-│  [查詢結果區 Phase 1]                 │
+│  [查詢結果區 Phase 2]                 │
 │                                      │
 │──────────────────────────────────────│  ← 分隔線
 │                                      │
@@ -142,7 +142,7 @@ Keep answers concise and practical. Use examples when helpful. If the user asks 
 
 ## 捲動行為
 
-- 聊天區域有固定最大高度：`calc(80vh - Phase 1高度 - 輸入區高度)`
+- 聊天區域有固定最大高度：`calc(80vh - Phase 2高度 - 輸入區高度)`
 - 超過後捲動，最新訊息永遠可見
 - 新訊息出現時自動捲至底部（smooth scroll）
 - 例外：若使用者手動向上捲動（表示在看舊訊息），新訊息出現時**不**自動捲動，改在底部顯示「↓ 新訊息」按鈕

@@ -1,4 +1,4 @@
-# Phase 1 — 單字查詢面板
+# Phase 2 — 單字查詢面板
 
 ## LLM 引擎
 
@@ -99,7 +99,7 @@ Do not add any extra commentary outside this format.
 │  2. ...                     │
 │  3. ...                     │
 │─────────────────────────────│
-│  [Chatbot 區] → Phase 3     │
+│  [Chatbot 區] → Phase 4     │
 └─────────────────────────────┘
 ```
 
@@ -107,6 +107,40 @@ Do not add any extra commentary outside this format.
 - 寬度固定：480px
 - 高度自適應內容，最大高度 80vh，超過則捲動
 - 點擊視窗外部關閉視窗
+
+### Popup 視窗 Lifecycle
+
+Popup 視窗在 app 啟動時**預先建立**，之後透過 `hide()` / `show()` 切換顯示，**不重複 destroy / create**。
+
+- 好處：show 時不需重新載入 HTML，反應更快
+- 「關閉」= `popupWindow.hide()`，視窗仍存在於記憶體
+- 每次 `show()` 前清空查詢結果與聊天記錄，再開始新查詢
+
+### Tray 點擊與 Popup blur 的 Race Condition
+
+Popup 點擊外部關閉的實作是監聽 `blur` 事件：
+
+```ts
+popupWindow.on('blur', () => popupWindow.hide())
+```
+
+**問題**：user 點擊系統匣圖示時，popup 先收到 `blur`（執行 `hide()`），之後 tray 的 `click` 事件才觸發（又執行 `show()`）。結果是畫面閃一下，感覺沒反應。
+
+**解法**：用時間戳記排除：
+
+```ts
+let lastHideTime = 0
+
+popupWindow.on('blur', () => {
+  lastHideTime = Date.now()
+  popupWindow.hide()
+})
+
+tray.on('click', () => {
+  if (Date.now() - lastHideTime < 200) return  // 避免立刻重新 show
+  popupWindow.show()
+})
+```
 
 ---
 

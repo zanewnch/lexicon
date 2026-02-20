@@ -1,4 +1,4 @@
-# Phase 4 — Setup Wizard
+# Phase 5 — Setup Wizard
 
 ## 觸發條件
 
@@ -16,9 +16,7 @@
 │                │                                  │
 │  ✓  Welcome    │                                  │
 │                │   [右側內容區，隨步驟切換]        │
-│  ●  Model      │                                  │
-│                │                                  │
-│  ○  Download   │                                  │
+│  ●  Download   │                                  │
 │                │                                  │
 │  ○  Done       │                                  │
 │                │                                  │
@@ -40,11 +38,10 @@
 │                │                                  │
 │  ✓  Welcome    │   Welcome to Lexicon             │
 │                │                                  │
-│  ○  Model      │   We'll download a language      │
-│                │   model to get you started.      │
-│  ○  Download   │   (~2 GB, one-time)              │
+│  ○  Download   │   We'll download the Qwen 2.5    │
+│                │   3B language model to get you   │
+│  ○  Done       │   started. (~2 GB, one-time)     │
 │                │                                  │
-│  ○  Done       │                                  │
 │                │          [ Get Started ]         │
 │                │                                  │
 └────────────────┴──────────────────────────────────┘
@@ -55,55 +52,31 @@
 
 ---
 
-## Step 2 — Model
-
-```
-┌────────────────┬──────────────────────────────────┐
-│                │                                  │
-│  ✓  Welcome    │   Choose a model                 │
-│                │                                  │
-│  ●  Model      │   ● qwen2.5-3b  Q4_K_M  ~2 GB   │
-│                │     Recommended · Fast           │
-│  ○  Download   │                                  │
-│                │   ○ llama-3.2-3b Q4_K_M  ~2 GB  │
-│  ○  Done       │     Alternative                  │
-│                │                                  │
-│                │   ○ llama-3.1-8b Q4_K_M  ~5 GB  │
-│                │     Better quality · Needs 8GB+  │
-│                │                                  │
-│                │                    [ Download ]  │
-└────────────────┴──────────────────────────────────┘
-```
-
-- 預設選取第一項（qwen2.5-3b）
-- 點擊「Download」→ 進入 Step 3
-
----
-
-## Step 3 — Download
+## Step 2 — Download
 
 ```
 ┌────────────────┬──────────────────────────────────┐
 │                │                                  │
 │  ✓  Welcome    │   Downloading model...           │
 │                │                                  │
-│  ✓  Model      │   qwen2.5-3b-instruct.Q4_K_M     │
+│  ●  Download   │   qwen2.5-3b-instruct.Q4_K_M     │
 │                │                                  │
-│  ●  Download   │   ████████████░░░░░░  62%        │
+│  ○  Done       │   ████████████░░░░░░  62%        │
 │                │   1.2 GB / 2.0 GB · 5.3 MB/s    │
-│  ○  Done       │   ~2 min 30 sec remaining        │
+│                │   ~2 min 30 sec remaining        │
 │                │                                  │
 │                │                      [ Cancel ]  │
 └────────────────┴──────────────────────────────────┘
 ```
 
 - 進度條即時更新
-- 「Cancel」：中止下載，刪除暫存檔，退回 Step 2
-- 下載完成後自動觸發 SHA256 校驗，進入 Step 4
+- 下載目標固定為 `qwen2.5-3b-instruct.Q4_K_M.gguf`
+- 「Cancel」：中止下載，保留暫存檔，退回 Step 1（Welcome）
+- 下載完成後自動觸發 SHA256 校驗，進入 Step 3
 
 ---
 
-## Step 4 — Done
+## Step 3 — Done
 
 **成功：**
 ```
@@ -111,11 +84,10 @@
 │                │                                  │
 │  ✓  Welcome    │   You're all set!                │
 │                │                                  │
-│  ✓  Model      │   Copy a word, press             │
+│  ✓  Download   │   Copy a word, press             │
 │                │   Ctrl+Shift+D, and Lexicon      │
-│  ✓  Download   │   will look it up instantly.     │
+│  ✓  Done       │   will look it up instantly.     │
 │                │                                  │
-│  ✓  Done       │                                  │
 │                │              [ Start Lexicon ]   │
 └────────────────┴──────────────────────────────────┘
 ```
@@ -126,13 +98,62 @@
 │                │                                  │
 │  ✓  Welcome    │   Download failed                │
 │                │                                  │
-│  ✓  Model      │   The file appears corrupted.    │
+│  ✕  Download   │   The file appears corrupted.    │
 │                │   Please try again.              │
-│  ✕  Download   │                                  │
-│                │                                  │
-│  ○  Done       │                    [ Try Again ] │
+│  ○  Done       │                                  │
+│                │                    [ Try Again ] │
 └────────────────┴──────────────────────────────────┘
 ```
+
+---
+
+## 下載實作細節
+
+### 下載來源
+
+直接使用 Hugging Face Hub 官方 URL，格式為：
+
+```
+https://huggingface.co/<repo>/resolve/main/<filename>.gguf
+```
+
+HF Hub 支援 HTTP Range requests，不需要使用 mirror。
+
+### 斷點續傳
+
+下載至暫存路徑 `<filename>.gguf.tmp`，完成後再重新命名為 `<filename>.gguf`。
+
+重試時檢查暫存檔大小，透過 `Range` header 從中斷點繼續：
+
+```ts
+const startByte = fs.existsSync(tmpPath) ? fs.statSync(tmpPath).size : 0
+const headers = startByte > 0 ? { 'Range': `bytes=${startByte}-` } : {}
+const response = await fetch(url, { headers })
+const writer = fs.createWriteStream(tmpPath, { flags: startByte > 0 ? 'a' : 'w' })
+```
+
+「Cancel」中止下載時**保留暫存檔**，下次點擊 Get Started 可繼續（不刪除）。
+
+### SHA256 校驗
+
+**不 hardcode hash 值**，從 HF API 動態取得。
+
+**重要：在下載開始前取得 SHA256**（不是下載完成後），原因是下載完成後可能網路已斷，導致驗證永遠失敗。
+
+```ts
+async function getRemoteSha256(repo: string, filename: string): Promise<string> {
+  const res = await fetch(`https://huggingface.co/api/models/${repo}/tree/main`)
+  const files = await res.json()
+  const file = files.find((f: any) => f.path === filename)
+  return file?.lfs?.sha256 ?? ''
+}
+```
+
+流程：
+1. 使用者點擊 Get Started → 先呼叫 HF API 取得 SHA256，存在記憶體
+2. 開始下載
+3. 下載完成 → 本地計算 SHA256（Node.js `crypto` 模組）與記憶體中的值比對
+4. 不符則進入 Step 3 失敗狀態
 
 ---
 
@@ -140,17 +161,17 @@
 
 | 情況 | 行為 |
 |---|---|
-| 網路連線失敗 | Step 3 顯示錯誤訊息，提供 Retry 按鈕 |
-| 磁碟空間不足 | 點擊 Download 前預先檢查，顯示「Not enough disk space (need X GB)」 |
-| 下載中途中斷 | 支援斷點續傳（HTTP Range requests），重試時從中斷點繼續 |
-| SHA256 校驗失敗 | 進入 Step 4 失敗狀態，提供 Try Again |
+| 網路連線失敗 | Step 2 顯示錯誤訊息，提供 Retry 按鈕 |
+| 磁碟空間不足 | 點擊 Get Started 前預先檢查，顯示「Not enough disk space (need ~2 GB)」 |
+| 下載中途中斷 | 支援斷點續傳，保留暫存檔，Retry 從中斷點繼續 |
+| SHA256 校驗失敗 | 進入 Step 3 失敗狀態，提供 Try Again |
 
 ---
 
 ## 模型儲存路徑
 
 ```
-%APPDATA%\Lexicon\models\<filename>.gguf
+%APPDATA%\Lexicon\models\qwen2.5-3b-instruct.Q4_K_M.gguf
 ```
 
 ---
@@ -158,4 +179,4 @@
 ## 跳過 Setup Wizard（進階用途）
 
 - 使用者可手動將 `.gguf` 檔案放置於模型目錄，Setup Wizard 不會出現
-- 設定面板（Phase 5）可手動指定模型路徑
+- 設定面板（Phase 6）可下載其他模型或切換已下載的模型
