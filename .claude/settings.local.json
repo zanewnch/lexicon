@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git mv:*)",
+      "WebFetch(domain:electron-vite.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(python3 -c \" import sys, json data = json.load\\(sys.stdin\\) for t in data.get\\(''tree'', []\\): p = t[''path''] if any\\(x in p.lower\\(\\) for x in [''doc'', ''guide'', ''multi'', ''window'', ''page'']\\): print\\(p\\) \")",
+      "Bash(python3 -c \" import sys, json data = json.load\\(sys.stdin\\) tree = data.get\\(''tree'', []\\) print\\(f''Total items: {len\\(tree\\)}''\\) for t in tree[:30]: print\\(t[''path'']\\) \")"
+    ]
+  }
+}
