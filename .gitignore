@@ -1,0 +1,10 @@
+node_modules/
+out/
+dist/
+.vite/
+*.log
+
+# Local Electron / OS files
+.DS_Store
+Thumbs.db
+

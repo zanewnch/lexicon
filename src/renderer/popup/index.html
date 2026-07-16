@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lexicon 翻譯</title>
+  </head>
+  <body class="popup-page">
+    <main class="popup-shell">
+      <header class="popup-header">
+        <div>
+          <p class="eyebrow">Lexicon · Ctrl+1</p>
+          <h1 id="translation-title">中翻英</h1>
+        </div>
+        <button class="icon-button" id="close-button" type="button" aria-label="關閉">×</button>
+      </header>
+
+      <form id="translation-form" class="translation-form">
+        <label class="sr-only" id="source-label" for="source-input">要翻譯的繁體中文</label>
+        <textarea id="source-input" rows="4" placeholder="輸入繁體中文…"></textarea>
+        <div class="form-footer">
+          <span id="source-hint" class="muted">Enter 翻譯 · Shift+Enter 換行</span>
+          <button class="primary-button" id="translate-button" type="submit">翻譯</button>
+        </div>
+      </form>
+
+      <p id="status" class="status-message" role="status" aria-live="polite">
+        <span id="loading-indicator" class="loading-indicator" aria-hidden="true" hidden></span>
+        <span id="status-text"></span>
+      </p>
+
+      <section id="result-card" class="result-card" aria-live="polite" hidden>
+        <div class="result-heading">
+          <span class="result-label" id="result-label">English</span>
+          <button class="text-button" id="copy-button" type="button">複製</button>
+        </div>
+        <p id="translation-result" class="translation-result"></p>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

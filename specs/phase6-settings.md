@@ -36,7 +36,7 @@
 ┌──────────────────────────────────────┐
 │  Download a Model                    │
 │                                      │
-│  ● qwen2.5-3b  Q4_K_M  ~2 GB        │
+│  ● gemma-4-E2B  UD-IQ2_M  ~2.29 GB   │
 │    Recommended · Fast                │
 │                                      │
 │  ○ llama-3.2-3b Q4_K_M  ~2 GB       │
@@ -73,7 +73,7 @@ Curated list 目前 hardcode 以下 3 個 model，之後有需要再擴充，不
 
 | Model | 檔案 | 大小 |
 |---|---|---|
-| qwen2.5-3b-instruct | Q4_K_M.gguf | ~2 GB |
+| gemma-4-E2B-it | UD-IQ2_M.gguf | ~2.29 GB |
 | llama-3.2-3b-instruct | Q4_K_M.gguf | ~2 GB |
 | llama-3.1-8b-instruct | Q4_K_M.gguf | ~5 GB |
 
@@ -108,7 +108,7 @@ Curated list 目前 hardcode 以下 3 個 model，之後有需要再擴充，不
 ```json
 {
   "hotkey": "ctrl+shift+d",
-  "model": "qwen2.5-3b-instruct.Q4_K_M.gguf",
+  "model": "gemma-4-E2B-it-UD-IQ2_M.gguf",
   "temperature": 0.3,
   "max_tokens": 300,
   "language": "zh-TW",

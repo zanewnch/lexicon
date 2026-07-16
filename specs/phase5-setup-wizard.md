@@ -59,7 +59,7 @@
 │                │                                  │
 │  ✓  Welcome    │   Downloading model...           │
 │                │                                  │
-│  ●  Download   │   qwen2.5-3b-instruct.Q4_K_M     │
+│  ●  Download   │   gemma-4-E2B-it-UD-IQ2_M        │
 │                │                                  │
 │  ○  Done       │   ████████████░░░░░░  62%        │
 │                │   1.2 GB / 2.0 GB · 5.3 MB/s    │
@@ -70,7 +70,7 @@
 ```
 
 - 進度條即時更新
-- 下載目標固定為 `qwen2.5-3b-instruct.Q4_K_M.gguf`
+- 下載目標固定為 `gemma-4-E2B-it-UD-IQ2_M.gguf`
 - 「Cancel」：中止下載，保留暫存檔，退回 Step 1（Welcome）
 - 下載完成後自動觸發 SHA256 校驗，進入 Step 3
 
@@ -85,7 +85,7 @@
 │  ✓  Welcome    │   You're all set!                │
 │                │                                  │
 │  ✓  Download   │   Copy a word, press             │
-│                │   Ctrl+Shift+D, and Lexicon      │
+│                │   Ctrl+1, and Lexicon            │
 │  ✓  Done       │   will look it up instantly.     │
 │                │                                  │
 │                │              [ Start Lexicon ]   │
@@ -171,7 +171,7 @@ async function getRemoteSha256(repo: string, filename: string): Promise<string> 
 ## 模型儲存路徑
 
 ```
-%APPDATA%\Lexicon\models\qwen2.5-3b-instruct.Q4_K_M.gguf
+%APPDATA%\Lexicon\models\gemma-4-E2B-it-UD-IQ2_M.gguf
 ```
 
 ---

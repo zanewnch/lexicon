@@ -1,0 +1,52 @@
+{
+  "name": "lexicon",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A lightweight local-LLM desktop dictionary.",
+  "main": "./out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && electron-vite build",
+    "package": "npm run build && electron-builder"
+  },
+  "build": {
+    "appId": "com.lexicon.app",
+    "productName": "Lexicon",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/node-llama-cpp/**"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "electron": "^43.1.1",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "node-llama-cpp": "^3.19.0"
+  },
+  "allowScripts": {
+    "electron@43.1.1": true,
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.1": true,
+    "node-llama-cpp@3.19.0": true
+  }
+}

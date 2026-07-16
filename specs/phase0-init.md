@@ -76,6 +76,6 @@ export default defineConfig({
 
 ## 完成標準
 
-- [ ] `npm run dev` 可正常啟動 Electron 視窗
-- [ ] TypeScript 編譯無錯誤
-- [ ] 確認 electron-vite 多頁面結構（popup / settings / setup / download-model）可運作，各頁面可獨立載入
+- [x] `npm run dev` 可正常啟動 Electron 視窗
+- [x] TypeScript 編譯無錯誤
+- [x] 確認 electron-vite 多頁面結構（popup / settings / setup / download-model）可完成 build 並各自輸出頁面

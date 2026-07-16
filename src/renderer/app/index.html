@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lexicon</title>
+  </head>
+  <body class="app-page">
+    <div class="app-shell" id="app-shell">
+      <aside class="sidebar" id="sidebar" aria-label="Lexicon 導覽">
+        <div class="sidebar-header">
+          <div class="brand-mark" aria-hidden="true">L</div>
+          <div class="brand-copy">
+            <strong>Lexicon</strong>
+            <span>Local translator</span>
+          </div>
+          <button
+            class="sidebar-toggle"
+            id="sidebar-toggle"
+            type="button"
+            aria-label="摺疊 sidebar"
+            aria-expanded="true"
+            title="摺疊 sidebar"
+          >
+            ‹
+          </button>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="主要功能">
+          <button class="nav-item is-active" type="button" data-view="translate" title="翻譯">
+            <span class="nav-icon" aria-hidden="true">↔</span>
+            <span class="nav-label">翻譯</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="nav-item" type="button" data-view="settings" title="Settings">
+            <span class="nav-icon" aria-hidden="true">⚙</span>
+            <span class="nav-label">Settings</span>
+          </button>
+        </div>
+
+        <div
+          class="sidebar-resize"
+          id="sidebar-resize"
+          role="separator"
+          aria-label="調整 sidebar 寬度"
+          aria-orientation="vertical"
+          tabindex="0"
+        ></div>
+      </aside>
+
+      <main class="app-content">
+        <section class="app-view" id="translate-view" aria-labelledby="translate-title">
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">Lexicon · Ctrl+1</p>
+              <h1 id="translate-title">中翻英</h1>
+              <p class="page-lead" id="translate-lead">輸入繁體中文，使用本機 Gemma 4 翻譯成自然英文。</p>
+            </div>
+            <span class="connection-badge"><span class="status-dot"></span>Local</span>
+          </header>
+
+          <form id="app-translation-form" class="app-translation-form">
+            <label id="app-source-label" for="app-source-input">繁體中文內容</label>
+            <textarea
+              id="app-source-input"
+              rows="7"
+              placeholder="例如：我今天很累，但還是要完成這個功能。"
+            ></textarea>
+            <div class="form-footer">
+              <span id="app-source-hint" class="muted">Enter 翻譯 · Shift+Enter 換行</span>
+              <button class="primary-button" id="app-translate-button" type="submit">翻譯</button>
+            </div>
+          </form>
+
+          <p id="app-status" class="status-message" role="status" aria-live="polite"></p>
+
+          <section class="app-result-card" id="app-result-card" hidden>
+            <div class="result-heading">
+              <span class="result-label" id="app-result-label">English</span>
+              <button class="text-button" id="app-copy-button" type="button">複製</button>
+            </div>
+            <p class="translation-result" id="app-translation-result"></p>
+          </section>
+        </section>
+
+        <section class="app-view" id="settings-view" aria-labelledby="settings-title" hidden>
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">Workspace</p>
+              <h1 id="settings-title">Settings</h1>
+              <p class="page-lead">管理快捷鍵、模型與 Lexicon 的工作方式。</p>
+            </div>
+          </header>
+
+            <div class="settings-grid">
+            <section class="settings-card appearance-card">
+              <div class="settings-card-heading">
+                <div>
+                  <h2>Appearance</h2>
+                  <p>選擇 Lexicon 的明暗主題，設定會同步套用到所有視窗。</p>
+                </div>
+              </div>
+              <div class="theme-options" role="radiogroup" aria-label="主題模式">
+                <button class="theme-option" type="button" data-theme-mode="dark" role="radio" aria-checked="false">
+                  <span class="theme-preview theme-preview-dark" aria-hidden="true"></span>
+                  <span>
+                    <strong>Dark</strong>
+                    <small>深色模式</small>
+                  </span>
+                </button>
+                <button class="theme-option" type="button" data-theme-mode="light" role="radio" aria-checked="false">
+                  <span class="theme-preview theme-preview-light" aria-hidden="true"></span>
+                  <span>
+                    <strong>Light</strong>
+                    <small>明亮模式</small>
+                  </span>
+                </button>
+                <button class="theme-option" type="button" data-theme-mode="system" role="radio" aria-checked="false">
+                  <span class="theme-preview theme-preview-system" aria-hidden="true"></span>
+                  <span>
+                    <strong>System</strong>
+                    <small>跟隨 Windows</small>
+                  </span>
+                </button>
+              </div>
+            </section>
+
+            <section class="settings-card">
+              <div class="settings-card-heading">
+                <div>
+                  <h2>快捷鍵</h2>
+                  <p>在任何 Windows 程式快速開啟翻譯 popup。</p>
+                </div>
+                <span class="settings-value">Ctrl+1</span>
+              </div>
+            </section>
+
+            <section class="settings-card">
+              <div class="settings-card-heading">
+                <div>
+                  <h2>模型</h2>
+                  <p id="settings-model-status">正在讀取模型狀態…</p>
+                </div>
+                <span class="settings-value" id="settings-backend">—</span>
+              </div>
+              <code class="settings-path" id="settings-model-path">—</code>
+            </section>
+
+            <section class="settings-card settings-card-disabled" aria-disabled="true">
+              <div class="settings-card-heading">
+                <div>
+                  <h2>開機啟動</h2>
+                  <p>讓 Lexicon 登入 Windows 後自動常駐。</p>
+                </div>
+                <button class="switch-control" type="button" disabled aria-label="開機啟動即將推出">
+                  <span></span>
+                </button>
+              </div>
+              <span class="coming-soon">即將推出</span>
+            </section>
+
+            <section class="settings-card">
+              <div class="settings-card-heading">
+                <div>
+                  <h2>Local processing</h2>
+                  <p>翻譯內容只在這台電腦處理，不會送到雲端 API。</p>
+                </div>
+                <span class="settings-value settings-value-success">On-device</span>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

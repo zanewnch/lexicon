@@ -1,16 +1,14 @@
-# Phase 2 — 單字查詢面板
+# Phase 2 — 本地中翻英引擎
 
 ## LLM 引擎
 
-`node-llama-cpp`，於 Electron main process 啟動時載入 GGUF 模型。
+`node-llama-cpp`，於 Electron main process 啟動時載入 Gemma 4 GGUF 模型。
 
 ### 推薦模型
 
 | 模型 | 大小 | 品質 | 適用情境 |
 |---|---|---|---|
-| `qwen2.5-3b-instruct.Q4_K_M.gguf` | ~2 GB | 良好 | 預設、低規格硬體 |
-| `llama-3.2-3b-instruct.Q4_K_M.gguf` | ~2 GB | 良好 | 預設、備選 |
-| `llama-3.1-8b-instruct.Q4_K_M.gguf` | ~5 GB | 更好 | 高規格硬體 |
+| `gemma-4-E2B-it-UD-IQ2_M.gguf` | ~2.29 GB | MVP | 預設、先求可執行 |
 
 ### 預設參數
 
@@ -18,7 +16,7 @@
 |---|---|---|
 | `temperature` | 0.3 | 低溫確保輸出穩定、一致 |
 | `max_tokens` | 300 | 足夠容納查詢格式 |
-| `n_gpu_layers` | -1 | 有 GPU 時全部 layer 交給 GPU |
+| `gpu` | CUDA → Vulkan → CPU | 依 runtime 可用性逐一嘗試，成功後固定使用該 backend |
 | `n_ctx` | 2048 | 上下文視窗大小 |
 
 ### API 介面
