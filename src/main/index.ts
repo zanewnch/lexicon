@@ -58,7 +58,7 @@ if (isDevelopment) {
   process.stderr.on('error', ignoreBrokenPipe)
 }
 
-type PageName = 'app' | 'popup' | 'settings' | 'setup' | 'download-model'
+type PageName = 'app' | 'popup' | 'popup-overlay' | 'settings' | 'setup' | 'download-model'
 type OpenPopupPayload = { text: string | null; source: 'selection' | 'manual' }
 
 const windows = new Map<PageName, BrowserWindow>()
@@ -152,18 +152,20 @@ function createWindow(page: PageName): BrowserWindow {
 
   const isApp = page === 'app'
   const isPopup = page === 'popup'
+  const isPopupOverlay = page === 'popup-overlay'
   const window = new BrowserWindow({
     width: isPopup ? POPUP_WIDTH : isApp ? APP_WIDTH : page === 'setup' ? 640 : 720,
     height: isPopup ? POPUP_DEFAULT_HEIGHT : isApp ? APP_HEIGHT : page === 'setup' ? 460 : 520,
     minWidth: isApp ? APP_MIN_WIDTH : undefined,
     minHeight: isApp ? APP_MIN_HEIGHT : undefined,
     show: false,
-    frame: !isPopup,
-    resizable: !isPopup,
+    frame: !isPopup && !isPopupOverlay,
+    resizable: !isPopup && !isPopupOverlay,
     movable: true,
-    skipTaskbar: isPopup,
-    alwaysOnTop: isPopup,
-    backgroundColor: '#0f172a',
+    skipTaskbar: isPopup || isPopupOverlay,
+    alwaysOnTop: isPopup || isPopupOverlay,
+    transparent: isPopupOverlay,
+    backgroundColor: isPopupOverlay ? '#00000000' : '#0f172a',
     autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true,
@@ -178,9 +180,6 @@ function createWindow(page: PageName): BrowserWindow {
   })
 
   if (isPopup) {
-    // Keep the popup above the source window while it is active. The interval is
-    // a Windows fallback: a floating frameless window does not always emit blur.
-    window.setAlwaysOnTop(true, 'floating')
     window.on('blur', () => hidePopupWindow(window))
     window.on('hide', stopPopupFocusCheck)
   }
@@ -203,7 +202,11 @@ function createWindow(page: PageName): BrowserWindow {
   }
 
   window.on('closed', () => windows.delete(page))
-  loadPage(window, page)
+  if (isPopupOverlay) {
+    void window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent('<!doctype html><html><head><style>html,body{margin:0;width:100%;height:100%;background:transparent}</style></head><body><script>window.addEventListener("pointerdown",()=>window.api.closePopup())</script></body></html>')}`)
+  } else {
+    loadPage(window, page)
+  }
   windows.set(page, window)
   return window
 }
@@ -311,14 +314,17 @@ async function handleHotkey(): Promise<void> {
 }
 
 async function openPopup(payload: OpenPopupPayload, point: Electron.Point): Promise<void> {
+  const overlay = createPopupOverlay(point)
   const popupWindow = createWindow('popup')
+  overlay.setAlwaysOnTop(true, 'normal')
+  popupWindow.setAlwaysOnTop(true, 'pop-up-menu')
   popupAnchorPoint = point
   positionPopup(popupWindow, point, POPUP_DEFAULT_HEIGHT)
-  popupWindow.setAlwaysOnTop(true, 'floating')
 
   const sendPayload = (): void => {
     if (popupWindow.isDestroyed()) return
     popupWindow.webContents.send('popup:open', payload)
+    overlay.showInactive()
     popupWindow.show()
     popupWindow.focus()
     startPopupFocusCheck(popupWindow)
@@ -331,15 +337,24 @@ async function openPopup(payload: OpenPopupPayload, point: Electron.Point): Prom
   }
 }
 
+function createPopupOverlay(point: Electron.Point): BrowserWindow {
+  const overlay = createWindow('popup-overlay')
+  const { workArea } = screen.getDisplayNearestPoint(point)
+  overlay.setBounds(workArea)
+  return overlay
+}
+
 function hidePopupWindow(popup: BrowserWindow): void {
   if (!popup.isDestroyed() && popup.isVisible()) popup.hide()
+  const overlay = windows.get('popup-overlay')
+  if (overlay && !overlay.isDestroyed() && overlay.isVisible()) overlay.hide()
 }
 
 function startPopupFocusCheck(popup: BrowserWindow): void {
   stopPopupFocusCheck()
   popupFocusCheck = setInterval(() => {
     if (popup.isDestroyed() || !popup.isVisible()) return
-    if (!popup.isFocused()) hidePopupWindow(popup)
+    if (BrowserWindow.getFocusedWindow() !== popup) hidePopupWindow(popup)
   }, 100)
 }
 

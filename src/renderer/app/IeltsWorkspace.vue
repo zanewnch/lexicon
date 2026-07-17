@@ -116,7 +116,7 @@ async function learnSelectedQuestion(): Promise<void> {
     const translation = await window.api.translate(selectedTopic.value.sample_question)
     if (!translation.ok || translation.kind !== 'translation') throw new Error(translation.ok ? '此題無法建立學習項目' : translation.message)
     await window.api.createLearningFromRecord(translation.translationRecordId)
-    learningStatus.value = '題目已加入我的表達，可到「今日學習」練習。'
+    learningStatus.value = '題目已加入我的表達（+5 XP），可到「今日學習」練習。'
   } catch (error) { learningStatus.value = error instanceof Error ? error.message : '建立學習項目失敗' }
   finally { learningTopic.value = false }
 }
