@@ -45,7 +45,11 @@ type DownloadProgress = {
   percent: number
 }
 
-type InstalledModel = { filename: string; path: string; size: number }
+type InstalledModel = { filename: string; path: string; size: number; modifiedAt: number }
+type ModelBenchmarkRating = 'smooth' | 'usable' | 'strained' | 'not-recommended'
+type ModelBenchmark =
+  | { status: 'success'; filename: string; size: number; modifiedAt: number; completedAt: string; backend: 'metal' | 'cuda' | 'vulkan' | 'cpu'; firstTokenMs: number; tokensPerSecond: number; rating: ModelBenchmarkRating; recommendation: string }
+  | { status: 'failed'; filename: string; size: number; modifiedAt: number; completedAt: string; message: string }
 type HuggingFaceModel = { id: string; downloads: number; likes: number; updatedAt?: string }
 type HuggingFaceGgufFile = { filename: string; size: number; sha256?: string }
 type ModelDownloadRequest = { kind: 'curated'; id: string } | { kind: 'huggingface'; repository: string; filename: string } | { kind: 'custom'; url: string }
@@ -73,12 +77,19 @@ type StudyDirection = {
 }
 
 type IeltsWorkspace = { notes: string; directions: StudyDirection[] }
+type TranslationHistoryRecord = { id: number; sourceText: string; translatedText: string; direction: 'zh-to-en' | 'en-to-zh'; sourceSurface: string; createdAt: string }
 type LearningState = 'new' | 'learning' | 'mastered'
 type ReviewExerciseType = 'reverse_translation' | 'cloze' | 'rewrite'
 type LearningItem = { id: number; translationRecordId: number; promptZh: string; targetEn: string; focusExpression: string; explanationZh: string; alternatives: string[]; tags: string[]; state: LearningState; nextReviewAt: string; createdAt: string }
 type ReviewCard = LearningItem & { exerciseType: ReviewExerciseType; clozePrompt?: string }
 type LearningDashboard = { due: ReviewCard[]; recent: LearningItem[]; counts: Record<LearningState, number>; weekly: { saved: number; reviewed: number; correct: number }; patterns: Array<{ expression: string; misses: number }> }
 type ReviewFeedback = { result: 'again' | 'hard' | 'good' | 'easy'; communicativeSuccess: boolean; message: string; correction: string; naturalAnswer: string; nextReviewAt: string }
+type JourneyTaskKind = 'review' | 'task' | 'save_first_item'
+type AbilityStage = 'saved' | 'recalled' | 'flexible' | 'mastered'
+type JourneyTask = { kind: JourneyTaskKind; label: string; targetCount: number; progressCount: number; completed: boolean }
+type AbilityNode = { itemId: number; expression: string; tags: string[]; stage: AbilityStage }
+type Achievement = { code: string; title: string; description: string; unlockedAt?: string }
+type GamificationDashboard = { profile: { totalXp: number; level: number; title: string; currentStreak: number; longestStreak: number; shields: number; streakEnabled: boolean; reducedMotion: boolean }; today: { localDate: string; completed: boolean; requiredUnits: number; completedUnits: number; xpEarned: number; tasks: JourneyTask[] }; week: { completedDays: number; targetDays: number }; abilityMap: AbilityNode[]; achievements: Achievement[] }
 type NewsArticle = { id: string; title: string; url: string; source: string; publishedAt: string; description: string }
 
 interface Window {
@@ -91,6 +102,8 @@ interface Window {
     resizePopup(height: number): void
     getModelStatus(): Promise<ModelStatus>
     listModels(): Promise<InstalledModel[]>
+    getModelBenchmarks(): Promise<Record<string, ModelBenchmark>>
+    benchmarkModel(filename: string): Promise<ModelBenchmark>
     searchHuggingFaceModels(query: string): Promise<HuggingFaceModel[]>
     listHuggingFaceGgufFiles(repository: string): Promise<HuggingFaceGgufFile[]>
     selectModel(filename: string): Promise<{ ok: true } | { ok: false; message: string }>
@@ -107,11 +120,14 @@ interface Window {
     loadIeltsWorkspace(initialWorkspace: IeltsWorkspace): Promise<IeltsWorkspace>
     saveIeltsNotes(notes: string): Promise<void>
     saveIeltsDirections(directions: StudyDirection[]): Promise<void>
+    generateIeltsWriting(mode: 'outline' | 'feedback' | 'sample', taskType: 'task-1' | 'task-2', prompt: string, draft: string): Promise<string>
+    listTranslationHistory(): Promise<TranslationHistoryRecord[]>
     loadLearningDashboard(): Promise<LearningDashboard>
     createLearningFromRecord(recordId: number): Promise<LearningItem>
     createLearningFromSource(sourceText: string, translatedText: string, direction: 'zh-to-en' | 'en-to-zh', sourceSurface: string): Promise<LearningItem>
-    reviewLearningItem(itemId: number, exerciseType: ReviewExerciseType, answer: string): Promise<ReviewFeedback>
-    reviewLearningTask(itemIds: number[], answer: string): Promise<Omit<ReviewFeedback, 'nextReviewAt'>>
+    reviewLearningItem(itemId: number, exerciseType: ReviewExerciseType, answer: string, operationId?: string): Promise<ReviewFeedback>
+    reviewLearningTask(itemIds: number[], answer: string, operationId?: string): Promise<Omit<ReviewFeedback, 'nextReviewAt'>>
+    updateLearningPreferences(preferences: { streakEnabled?: boolean; reducedMotion?: boolean }): Promise<GamificationDashboard>
     deleteLearningItem(itemId: number): Promise<void>
     clearLearningData(): Promise<void>
     getSetting(key: 'theme' | 'backup-on-quit' | 'backup-directory' | 'shortcut' | 'model'): Promise<string | undefined>

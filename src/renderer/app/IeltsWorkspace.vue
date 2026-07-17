@@ -34,6 +34,16 @@ const directions = ref<StudyDirection[]>([])
 const workspaceLoaded = ref(false)
 const learningTopic = ref(false)
 const learningStatus = ref('')
+const writingTaskType = ref<'task-1' | 'task-2'>('task-2')
+const writingPrompt = ref('')
+const writingDraft = ref('')
+const writingResult = ref('')
+const writingStatus = ref('')
+const writingAction = ref<'outline' | 'feedback' | 'sample' | null>(null)
+const writingReferenceSource = ref(false)
+const translationInput = ref('')
+const translationResult = ref('')
+const translating = ref(false)
 let notesTimer: number | undefined
 let directionsTimer: number | undefined
 
@@ -110,11 +120,38 @@ async function learnSelectedQuestion(): Promise<void> {
   } catch (error) { learningStatus.value = error instanceof Error ? error.message : '建立學習項目失敗' }
   finally { learningTopic.value = false }
 }
+async function runWritingAction(action: 'outline' | 'feedback' | 'sample'): Promise<void> {
+  writingAction.value = action
+  writingStatus.value = ''
+  writingReferenceSource.value = false
+  try {
+    writingResult.value = await window.api.generateIeltsWriting(action, writingTaskType.value, writingPrompt.value, writingDraft.value)
+    writingReferenceSource.value = action === 'sample'
+  } catch (error) {
+    writingStatus.value = error instanceof Error ? error.message : 'AI 寫作協助失敗，請重試'
+  } finally {
+    writingAction.value = null
+  }
+}
+async function translateWritingText(): Promise<void> {
+  if (!translationInput.value.trim()) return
+  translating.value = true
+  translationResult.value = ''
+  try {
+    const result = await window.api.translate(translationInput.value)
+    if (!result.ok || result.kind !== 'translation') throw new Error(result.ok ? '無法翻譯這段內容' : result.message)
+    translationResult.value = result.text
+  } catch (error) {
+    translationResult.value = error instanceof Error ? error.message : '翻譯失敗，請重試'
+  } finally {
+    translating.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="text-overline text-primary">IELTS Speaking · Personal study workspace</div>
-  <div class="row items-start justify-between q-col-gutter-md"><div><div class="text-h3">Speaking 題庫</div><div class="text-body1 text-grey-5 q-mt-sm">從近期題目開始，留下可重複使用的練習方向。</div></div><q-badge color="positive" outline label="106 topics" /></div>
+  <div class="text-overline text-primary">IELTS · Personal study workspace</div>
+  <div class="row items-start justify-between q-col-gutter-md"><div><div class="text-h3">IELTS 練習中心</div><div class="text-body1 text-grey-5 q-mt-sm">從近期 Speaking 題目開始，也可在下方完成 Writing、翻譯與範文練習。</div></div><q-badge color="positive" outline label="106 Speaking topics" /></div>
 
   <div class="row q-col-gutter-sm q-mt-lg">
     <div v-for="stat in [{ label: '目前題目', value: filteredTopics.length }, { label: 'Part 1', value: partOneCount }, { label: 'Part 2/3', value: partTwoCount }, { label: '新題', value: newCount }]" :key="stat.label" class="col-6 col-sm-3"><q-card flat class="lexicon-card"><q-card-section><div class="text-caption text-grey-5">{{ stat.label }}</div><div class="text-h5 q-mt-xs">{{ stat.value }}</div></q-card-section></q-card></div>
@@ -124,6 +161,16 @@ async function learnSelectedQuestion(): Promise<void> {
     <div class="col-12 col-md-5"><q-card flat class="lexicon-card"><q-card-section class="q-gutter-sm"><q-input v-model="query" dense outlined label="搜尋題目" placeholder="Topic、question、category" clearable /><div class="row q-col-gutter-sm"><div class="col-6"><q-select v-model="part" dense outlined emit-value map-options :options="partOptions" label="Part" /></div><div class="col-6"><q-select v-model="category" dense outlined emit-value map-options :options="categoryOptions" label="分類" /></div><div class="col-12"><q-select v-model="priority" dense outlined emit-value map-options :options="priorityOptions" label="優先度" /></div></div><q-checkbox v-model="newOnly" dense label="只看新題" color="primary" /></q-card-section><q-separator /><q-list class="ielts-topic-list" separator><q-item v-for="topic in filteredTopics" :key="topic.id" clickable :active="topic.id === selectedTopic?.id" active-class="ielts-topic-active" @click="selectedId = topic.id"><q-item-section><q-item-label caption>{{ topic.part_label }} · {{ topic.category_label }}</q-item-label><q-item-label>{{ topic.topic_name }}</q-item-label><q-item-label caption>{{ topic.is_new ? 'New · ' : '' }}{{ topic.priority }}</q-item-label></q-item-section></q-item><q-item v-if="!filteredTopics.length"><q-item-section class="text-grey-5">沒有符合目前篩選條件的題目。</q-item-section></q-item></q-list></q-card></div>
     <div class="col-12 col-md-7"><q-card flat class="lexicon-card ielts-detail-card"><q-card-section v-if="selectedTopic"><div class="text-overline text-primary">{{ selectedTopic.part_label }} · {{ selectedTopic.category_label }}</div><div class="text-h4 q-mt-xs">{{ selectedTopic.topic_name }}</div><div class="q-gutter-xs q-mt-sm"><q-badge outline color="primary" :label="selectedTopic.priority" /><q-badge v-if="selectedTopic.is_new" color="positive" outline label="New topic" /></div><div class="text-overline text-grey-5 q-mt-xl">Sample question</div><div class="text-h6 q-mt-sm ielts-question">{{ selectedTopic.sample_question }}</div><q-btn class="q-mt-md" flat dense color="primary" :loading="learningTopic" label="翻譯並學這句" @click="learnSelectedQuestion" /><div v-if="learningStatus" class="text-caption q-mt-sm" :class="learningStatus.includes('已加入') ? 'text-positive' : 'text-negative'">{{ learningStatus }}</div><div class="row q-col-gutter-md q-mt-lg"><div class="col-6"><div class="text-caption text-grey-5">Recent exam reports</div><div>{{ selectedTopic.recent_exam_count }}</div></div><div class="col-6"><div class="text-caption text-grey-5">Questions</div><div>{{ selectedTopic.question_count }}</div></div><div class="col-6"><div class="text-caption text-grey-5">Season</div><div>{{ selectedTopic.time_tag || 'Unknown' }}</div></div><div class="col-6"><div class="text-caption text-grey-5">Learners</div><div>{{ selectedTopic.learner_count || '—' }}</div></div></div></q-card-section><q-card-section v-else class="text-grey-5">沒有符合目前篩選條件的題目。</q-card-section></q-card></div>
   </div>
+
+  <div class="text-overline text-primary q-mt-xl">IELTS Writing · AI studio</div>
+  <div class="text-h5 q-mt-xs">從題目到草稿，建立可重複使用的寫作流程</div>
+  <div class="text-body2 text-grey-5 q-mt-sm">由本機模型生成原創架構、回饋與參考答案；它不是官方題解，也不保證分數。</div>
+  <div class="row q-col-gutter-md q-mt-md">
+    <div class="col-12 col-md-7"><q-card flat class="lexicon-card"><q-card-section class="q-gutter-md"><q-option-group v-model="writingTaskType" inline color="primary" type="radio" :options="[{ label: 'Task 1', value: 'task-1' }, { label: 'Task 2', value: 'task-2' }]" /><q-input v-model="writingPrompt" outlined type="textarea" autogrow label="寫作題目" placeholder="貼上 IELTS Writing 題目…" /><q-input v-model="writingDraft" outlined type="textarea" autogrow label="我的英文草稿（批改時必填）" placeholder="先自己寫，再請 AI 給你最重要的改善方向。" /><div class="row q-gutter-sm"><q-btn color="primary" :loading="writingAction === 'outline'" label="設計寫作架構" @click="runWritingAction('outline')" /><q-btn outline color="primary" :loading="writingAction === 'feedback'" label="批改我的草稿" @click="runWritingAction('feedback')" /><q-btn flat color="primary" :loading="writingAction === 'sample'" label="產生原創參考範文" @click="runWritingAction('sample')" /></div><div v-if="writingStatus" class="text-negative text-caption">{{ writingStatus }}</div></q-card-section></q-card></div>
+    <div class="col-12 col-md-5"><q-card flat class="lexicon-card ielts-detail-card"><q-card-section><div class="text-overline text-primary">AI 結果</div><div v-if="writingResult" class="ielts-writing-result q-mt-md">{{ writingResult }}</div><div v-else class="text-grey-5 q-mt-md">輸入題目後，可先取得架構；完成草稿後再請 AI 聚焦改善。</div><q-banner v-if="writingReferenceSource" rounded class="q-mt-md bg-blue-1 text-dark"><div class="text-caption text-weight-medium">範文來源</div><div class="text-caption q-mt-xs">本文由 Lexicon 本機 AI 依你的題目原創生成，並非摘錄自官方或第三方範文。題型與練習格式可對照下列官方資源。</div><div class="q-gutter-sm q-mt-sm"><q-btn flat dense type="a" target="_blank" href="https://takeielts.britishcouncil.org/take-ielts/prepare/free-ielts-english-practice-tests" label="British Council 練習題" /><q-btn flat dense type="a" target="_blank" href="https://ielts.idp.com/about/ielts-practice-materials" label="IDP 練習素材" /></div></q-banner></q-card-section></q-card></div>
+  </div>
+
+  <q-card flat class="lexicon-card q-mt-md"><q-card-section><div class="text-h6">寫作翻譯</div><div class="text-caption text-grey-5 q-mt-xs">貼上中文想法或英文句子，快速轉成另一種語言；結果可再貼回草稿調整。</div><q-input v-model="translationInput" class="q-mt-md" outlined type="textarea" autogrow label="要翻譯的文字" placeholder="例如：我認為政府應該優先投資大眾運輸。" /><q-btn class="q-mt-sm" outline color="primary" :disable="!translationInput.trim()" :loading="translating" label="翻譯" @click="translateWritingText" /><div v-if="translationResult" class="ielts-writing-result q-mt-md">{{ translationResult }}</div></q-card-section></q-card>
 
   <div class="text-overline text-primary q-mt-xl">Self-study workspace</div><div class="text-h5 q-mt-xs">設計方向</div>
   <div class="row q-col-gutter-md q-mt-md"><div class="col-12 col-md-7"><q-card flat class="lexicon-card"><q-card-section><q-input v-model="notes" outlined type="textarea" autogrow label="即時紀錄" placeholder="想練什麼、卡在哪裡、今天的目標…" /><div class="text-caption text-grey-5 q-mt-sm">會自動儲存在這台電腦。</div></q-card-section></q-card></div><div class="col-12 col-md-5"><q-card flat class="lexicon-card"><q-card-section class="q-gutter-md"><q-input v-model="directionTitle" dense outlined label="方向名稱" placeholder="例如：Part 2 故事素材" /><q-input v-model="directionFocus" outlined type="textarea" autogrow label="練習重點" placeholder="下一步要補什麼？" /><q-btn color="primary" label="加入方向" @click="addDirection" /></q-card-section></q-card></div></div>

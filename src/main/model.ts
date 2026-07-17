@@ -39,7 +39,7 @@ export type DownloadProgress = {
   percent: number
 }
 
-export type InstalledModel = { filename: string; path: string; size: number }
+export type InstalledModel = { filename: string; path: string; size: number; modifiedAt: number }
 export type HuggingFaceModel = { id: string; downloads: number; likes: number; updatedAt?: string }
 export type HuggingFaceGgufFile = { filename: string; size: number; sha256?: string }
 export type ModelDownloadRequest =
@@ -109,7 +109,10 @@ export async function listInstalledModels(appDataPath: string): Promise<Installe
     const entries = await readdir(directory, { withFileTypes: true })
     const models = await Promise.all(entries
       .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.gguf'))
-      .map(async (entry) => ({ filename: entry.name, path: join(directory, entry.name), size: (await stat(join(directory, entry.name))).size })))
+      .map(async (entry) => {
+        const file = await stat(join(directory, entry.name))
+        return { filename: entry.name, path: join(directory, entry.name), size: file.size, modifiedAt: Math.round(file.mtimeMs) }
+      }))
     return models.sort((left, right) => left.filename.localeCompare(right.filename))
   } catch {
     return []

@@ -27,6 +27,7 @@ import {
 } from './model'
 import { TranslationEngine } from './llm'
 import { TranslationJobScheduler } from './translationJobScheduler'
+import { evaluateBenchmark, type ModelBenchmark } from './modelBenchmark'
 import { IeltsWorkspaceStore, type IeltsWorkspace, type StudyDirection } from './ieltsWorkspaceStore'
 import { LearningStore } from './learningStore'
 import type { LearningExtraction, ReviewExerciseType } from '../shared/learning'
@@ -71,8 +72,11 @@ let registeredHotkey = DEFAULT_HOTKEY
 let popupAnchorPoint: Electron.Point | undefined
 let popupOpenRequestId = 0
 let nextTranslationRequestId = 0
+let popupFocusCheck: NodeJS.Timeout | undefined
 let shouldQuitAfterBackup = false
 const activeTranslationRequestIds = new Set<number>()
+let modelBenchmarkInProgress = false
+const MODEL_BENCHMARKS_SETTING = 'model-benchmarks'
 const gotSingleInstanceLock = app.requestSingleInstanceLock()
 
 if (!gotSingleInstanceLock) {
@@ -174,14 +178,11 @@ function createWindow(page: PageName): BrowserWindow {
   })
 
   if (isPopup) {
-    // Keep the popup above the source window while it is active. Moving focus to
-    // another app (or the desktop) should put it away; Ctrl+Shift+Q can show it again.
+    // Keep the popup above the source window while it is active. The interval is
+    // a Windows fallback: a floating frameless window does not always emit blur.
     window.setAlwaysOnTop(true, 'floating')
-    window.on('blur', () => {
-      if (!window.isDestroyed() && window.isVisible()) {
-        window.hide()
-      }
-    })
+    window.on('blur', () => hidePopupWindow(window))
+    window.on('hide', stopPopupFocusCheck)
   }
 
   if (isDevelopment) {
@@ -320,6 +321,7 @@ async function openPopup(payload: OpenPopupPayload, point: Electron.Point): Prom
     popupWindow.webContents.send('popup:open', payload)
     popupWindow.show()
     popupWindow.focus()
+    startPopupFocusCheck(popupWindow)
   }
 
   if (popupWindow.webContents.isLoading()) {
@@ -327,6 +329,24 @@ async function openPopup(payload: OpenPopupPayload, point: Electron.Point): Prom
   } else {
     sendPayload()
   }
+}
+
+function hidePopupWindow(popup: BrowserWindow): void {
+  if (!popup.isDestroyed() && popup.isVisible()) popup.hide()
+}
+
+function startPopupFocusCheck(popup: BrowserWindow): void {
+  stopPopupFocusCheck()
+  popupFocusCheck = setInterval(() => {
+    if (popup.isDestroyed() || !popup.isVisible()) return
+    if (!popup.isFocused()) hidePopupWindow(popup)
+  }, 100)
+}
+
+function stopPopupFocusCheck(): void {
+  if (!popupFocusCheck) return
+  clearInterval(popupFocusCheck)
+  popupFocusCheck = undefined
 }
 
 function positionPopup(popup: BrowserWindow, point: Electron.Point, height: number): void {
@@ -411,6 +431,7 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('translation:translate', async (_event, text: unknown, sessionId: unknown, mode: unknown) => {
+    if (modelBenchmarkInProgress) return { ok: false, message: '模型效能測試進行中，完成後再試一次。' }
     const requestId = ++nextTranslationRequestId
     const startedAt = Date.now()
     const popupSessionId = typeof sessionId === 'number' ? sessionId : undefined
@@ -459,7 +480,82 @@ function registerIpc(): void {
     }
   })
 
+  ipcMain.handle('ielts-writing:generate', async (_event, request: unknown) => {
+    if (!request || typeof request !== 'object') throw new Error('寫作請求格式不正確')
+    const { mode, taskType, prompt, draft } = request as Record<string, unknown>
+    if ((mode !== 'outline' && mode !== 'feedback' && mode !== 'sample') || (taskType !== 'task-1' && taskType !== 'task-2')) {
+      throw new Error('寫作模式格式不正確')
+    }
+    if (typeof prompt !== 'string' || typeof draft !== 'string') throw new Error('寫作內容格式不正確')
+    if (!prompt.trim()) throw new Error('請先輸入 IELTS 寫作題目')
+    if (prompt.length > 6000 || draft.length > 12000) throw new Error('寫作內容過長，請縮短後再試')
+    if (mode === 'feedback' && !draft.trim()) throw new Error('請先貼上你的英文草稿')
+    return translator.generateIeltsWriting(mode, taskType, prompt, draft)
+  })
+
   ipcMain.handle('model:list', () => listInstalledModels(app.getPath('appData')))
+
+  ipcMain.handle('model:benchmarks', async () => {
+    const models = await listInstalledModels(app.getPath('appData'))
+    const saved = getStoredModelBenchmarks()
+    return Object.fromEntries(models.flatMap((model) => {
+      const benchmark = saved[model.filename]
+      return benchmark ? [[model.filename, benchmark]] : []
+    }))
+  })
+
+  ipcMain.handle('model:benchmark', async (_event, filename: unknown): Promise<ModelBenchmark> => {
+    if (typeof filename !== 'string' || filename !== basename(filename) || !filename.toLowerCase().endsWith('.gguf')) {
+      throw new Error('模型檔案格式不正確')
+    }
+    if (modelBenchmarkInProgress) throw new Error('已有模型效能測試正在進行')
+
+    const models = await listInstalledModels(app.getPath('appData'))
+    const model = models.find((candidate) => candidate.filename === filename)
+    if (!model) throw new Error('找不到指定的模型檔案')
+
+    modelBenchmarkInProgress = true
+    const selectedFilename = getIeltsWorkspaceStore().getSetting('model')
+    const selected = models.find((candidate) => candidate.filename === selectedFilename)
+    const switched = selected?.filename !== model.filename
+    let benchmark: ModelBenchmark
+
+    try {
+      benchmark = await translationJobs.submit(
+        { id: `model-benchmark-${Date.now()}`, text: '', direction: 'en-to-zh', priority: 'interactive' },
+        async () => {
+          if (switched) await translator.load(model.path)
+          const warmMeasurements = await translator.benchmarkTranslation()
+          const evaluation = evaluateBenchmark(warmMeasurements)
+          return {
+            status: 'success' as const,
+            filename: model.filename,
+            size: model.size,
+            modifiedAt: model.modifiedAt,
+            completedAt: new Date().toISOString(),
+            backend: translator.backend,
+            firstTokenMs: Math.round(warmMeasurements.firstTokenMs),
+            tokensPerSecond: Math.round(warmMeasurements.tokensPerSecond * 10) / 10,
+            ...evaluation
+          }
+        }
+      )
+    } catch (error) {
+      benchmark = {
+        status: 'failed', filename: model.filename, size: model.size, modifiedAt: model.modifiedAt,
+        completedAt: new Date().toISOString(), message: formatError(error, '模型效能測試失敗')
+      }
+    } finally {
+      if (switched && selected) {
+        try { await translator.load(selected.path); sendModelReady() }
+        catch (error) { debugError('model benchmark', 'failed to restore selected model', error, { filename: selected.filename }) }
+      }
+      modelBenchmarkInProgress = false
+    }
+
+    saveModelBenchmark(benchmark)
+    return benchmark
+  })
 
   ipcMain.handle('model:search-huggingface', async (_event, query: unknown) => {
     if (typeof query !== 'string' || query.trim().length < 2 || query.length > 100) throw new Error('請輸入 2 到 100 個字元的模型名稱')
@@ -472,6 +568,7 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('model:select', async (_event, filename: unknown) => {
+    if (modelBenchmarkInProgress) return { ok: false, message: '模型效能測試進行中，完成後再切換模型。' }
     if (typeof filename !== 'string' || filename !== basename(filename) || !filename.toLowerCase().endsWith('.gguf')) return { ok: false, message: '模型檔案格式不正確' }
     const models = await listInstalledModels(app.getPath('appData'))
     const selected = models.find((model) => model.filename === filename)
@@ -495,6 +592,7 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('model:download', async (event, request: unknown) => {
+    if (modelBenchmarkInProgress) return { ok: false, message: '模型效能測試進行中，完成後再下載模型。' }
     try {
       if (!isModelDownloadRequest(request)) throw new Error('模型下載來源格式不正確')
       const result = await downloadModel(app.getPath('appData'), request, event.sender)
@@ -511,7 +609,7 @@ function registerIpc(): void {
 
   ipcMain.on('popup:close', () => {
     const popup = windows.get('popup')
-    if (popup && !popup.isDestroyed()) popup.hide()
+    if (popup) hidePopupWindow(popup)
   })
 
   ipcMain.on('popup:resize', (_event, requestedHeight: unknown) => {
@@ -541,6 +639,36 @@ function getIeltsWorkspaceStore(): IeltsWorkspaceStore {
 function getLearningStore(): LearningStore {
   learningStore ??= new LearningStore(app.getPath('userData'))
   return learningStore
+}
+
+function getStoredModelBenchmarks(): Record<string, ModelBenchmark> {
+  const raw = getIeltsWorkspaceStore().getSetting(MODEL_BENCHMARKS_SETTING)
+  if (!raw) return {}
+  try {
+    const value = JSON.parse(raw) as unknown
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+    return Object.fromEntries(Object.entries(value).filter(([, benchmark]) => isStoredModelBenchmark(benchmark))) as Record<string, ModelBenchmark>
+  } catch { return {} }
+}
+
+function saveModelBenchmark(benchmark: ModelBenchmark): void {
+  const benchmarks = getStoredModelBenchmarks()
+  benchmarks[benchmark.filename] = benchmark
+  getIeltsWorkspaceStore().setSetting(MODEL_BENCHMARKS_SETTING, JSON.stringify(benchmarks))
+}
+
+function isStoredModelBenchmark(value: unknown): value is ModelBenchmark {
+  if (!value || typeof value !== 'object') return false
+  const item = value as Record<string, unknown>
+  const common = typeof item.filename === 'string' && typeof item.size === 'number' && typeof item.modifiedAt === 'number' && typeof item.completedAt === 'string'
+  if (!common) return false
+  if (item.status === 'failed') return typeof item.message === 'string'
+  return item.status === 'success'
+    && ['metal', 'cuda', 'vulkan', 'cpu'].includes(item.backend as string)
+    && typeof item.firstTokenMs === 'number'
+    && typeof item.tokensPerSecond === 'number'
+    && ['smooth', 'usable', 'strained', 'not-recommended'].includes(item.rating as string)
+    && typeof item.recommendation === 'string'
 }
 
 type SettingKey = 'theme' | 'backup-on-quit' | 'backup-directory' | 'shortcut' | 'model'
@@ -654,6 +782,7 @@ function parseIeltsWorkspace(value: unknown): IeltsWorkspace {
   })
 
   ipcMain.handle('learning:dashboard', () => getLearningStore().getDashboard())
+  ipcMain.handle('history:list', () => getLearningStore().listTranslationHistory())
   ipcMain.handle('learning:create-from-record', async (_event, recordId: unknown) => {
     if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')
     const store = getLearningStore()
@@ -681,8 +810,8 @@ function parseIeltsWorkspace(value: unknown): IeltsWorkspace {
   })
   ipcMain.handle('learning:review', async (_event, payload: unknown) => {
     if (!payload || typeof payload !== 'object') throw new Error('複習資料格式不正確')
-    const review = payload as { itemId?: unknown; exerciseType?: unknown; answer?: unknown }
-    if (!Number.isSafeInteger(review.itemId) || !['reverse_translation', 'cloze', 'rewrite'].includes(review.exerciseType as string) || typeof review.answer !== 'string') throw new Error('複習資料格式不正確')
+    const review = payload as { itemId?: unknown; exerciseType?: unknown; answer?: unknown; operationId?: unknown }
+    if (!Number.isSafeInteger(review.itemId) || !['reverse_translation', 'cloze', 'rewrite'].includes(review.exerciseType as string) || typeof review.answer !== 'string' || (review.operationId !== undefined && (typeof review.operationId !== 'string' || review.operationId.length > 100))) throw new Error('複習資料格式不正確')
     const store = getLearningStore()
     const item = store.getItem(review.itemId as number)
     const extraction: LearningExtraction = { promptZh: item.promptZh, targetEn: item.targetEn, focusExpression: item.focusExpression, explanationZh: item.explanationZh, alternatives: item.alternatives, tags: item.tags }
@@ -692,17 +821,24 @@ function parseIeltsWorkspace(value: unknown): IeltsWorkspace {
       { id: `learning-review-${item.id}`, text: answer, direction: 'zh-to-en', priority: 'interactive' },
       () => translator.evaluateLearningAnswer(extraction, exerciseType, answer, `learning-review-${item.id}`)
     )
-    return store.review(item.id, exerciseType, answer, feedback)
+    return store.review(item.id, exerciseType, answer, feedback, review.operationId as string | undefined)
   })
   ipcMain.handle('learning:task', async (_event, payload: unknown) => {
     if (!payload || typeof payload !== 'object') throw new Error('任務資料格式不正確')
-    const task = payload as { itemIds?: unknown; answer?: unknown }
-    if (!Array.isArray(task.itemIds) || task.itemIds.length < 2 || task.itemIds.length > 3 || !task.itemIds.every((id) => Number.isSafeInteger(id)) || typeof task.answer !== 'string' || !task.answer.trim()) throw new Error('任務資料格式不正確')
+    const task = payload as { itemIds?: unknown; answer?: unknown; operationId?: unknown }
+    if (!Array.isArray(task.itemIds) || task.itemIds.length < 2 || task.itemIds.length > 3 || !task.itemIds.every((id) => Number.isSafeInteger(id)) || typeof task.answer !== 'string' || !task.answer.trim() || (task.operationId !== undefined && (typeof task.operationId !== 'string' || task.operationId.length > 100))) throw new Error('任務資料格式不正確')
     const store = getLearningStore()
     const items = task.itemIds.map((id) => store.getItem(id as number))
     const extractions = items.map((item) => ({ promptZh: item.promptZh, targetEn: item.targetEn, focusExpression: item.focusExpression, explanationZh: item.explanationZh, alternatives: item.alternatives, tags: item.tags }))
     const answer = task.answer
-    return translationJobs.submit({ id: `learning-task-${Date.now()}`, text: answer, direction: 'zh-to-en', priority: 'interactive' }, () => translator.evaluateLearningTask(extractions, answer))
+    const feedback = await translationJobs.submit({ id: `learning-task-${Date.now()}`, text: answer, direction: 'zh-to-en', priority: 'interactive' }, () => translator.evaluateLearningTask(extractions, answer))
+    return store.reviewTask(task.itemIds as number[], answer, feedback, task.operationId as string | undefined)
+  })
+  ipcMain.handle('learning:update-preferences', (_event, payload: unknown) => {
+    if (!payload || typeof payload !== 'object') throw new Error('學習設定格式不正確')
+    const preferences = payload as { streakEnabled?: unknown; reducedMotion?: unknown }
+    if ((preferences.streakEnabled !== undefined && typeof preferences.streakEnabled !== 'boolean') || (preferences.reducedMotion !== undefined && typeof preferences.reducedMotion !== 'boolean')) throw new Error('學習設定格式不正確')
+    return getLearningStore().updatePreferences({ streakEnabled: preferences.streakEnabled as boolean | undefined, reducedMotion: preferences.reducedMotion as boolean | undefined })
   })
   ipcMain.handle('learning:delete-item', (_event, itemId: unknown) => {
     if (!Number.isSafeInteger(itemId) || (itemId as number) < 1) throw new Error('學習項目格式不正確')

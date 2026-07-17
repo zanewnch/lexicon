@@ -3,11 +3,13 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { initializeTheme, setTheme, type ThemeMode } from '../theme'
 import { detectTranslationDirection, getDirectionLabels } from '../../shared/translationDirection'
 import IeltsWorkspace from './IeltsWorkspace.vue'
+import SearchHistoryWorkspace from './SearchHistoryWorkspace.vue'
 import YouTubeTranscript from './YouTubeTranscript.vue'
 import LearningWorkspace from './LearningWorkspace.vue'
 import NewsWorkspace from './NewsWorkspace.vue'
+import Settings from '../settings/Settings.vue'
 
-const view = ref<'translate' | 'news' | 'learn' | 'youtube' | 'ielts' | 'settings'>('translate')
+const view = ref<'translate' | 'news' | 'learn' | 'youtube' | 'ielts' | 'history' | 'settings'>('translate')
 const drawerOpen = ref(true)
 const source = ref('')
 const sourceInput = ref<{ focus: () => void } | null>(null)
@@ -19,6 +21,7 @@ const busy = ref(false)
 const theme = ref<ThemeMode>(initializeTheme())
 const model = ref<ModelStatus | null>(null)
 const youtubeTranscript = ref<YouTubeTranscript | null>(null)
+const learningComplete = ref(false)
 const direction = computed(() => detectTranslationDirection(source.value))
 const labels = computed(() => getDirectionLabels(direction.value))
 const hotkeyLabel = computed(() => window.api.platform === 'darwin' ? '⌘ + Shift + L' : 'Ctrl + Shift + Q')
@@ -55,6 +58,10 @@ function focusSourceOnEnter(event: KeyboardEvent): void {
   event.preventDefault()
   sourceInput.value?.focus()
 }
+async function refreshLearningComplete(): Promise<void> {
+  try { learningComplete.value = (await window.api.loadLearningDashboard()).gamification.today.completed }
+  catch { learningComplete.value = false }
+}
 onMounted(() => {
   void window.api.getSetting('theme').then((saved) => {
     if (saved === 'dark' || saved === 'light' || saved === 'system') chooseTheme(saved)
@@ -63,8 +70,10 @@ onMounted(() => {
   window.api.onModelReady(() => void loadModel())
   window.api.onYouTubeTranscriptOpen((transcript) => { youtubeTranscript.value = transcript; view.value = 'youtube' })
   document.addEventListener('keydown', focusSourceOnEnter)
+  window.addEventListener('learning:updated', refreshLearningComplete)
+  void refreshLearningComplete()
 })
-onUnmounted(() => document.removeEventListener('keydown', focusSourceOnEnter))
+onUnmounted(() => { document.removeEventListener('keydown', focusSourceOnEnter); window.removeEventListener('learning:updated', refreshLearningComplete) })
 </script>
 
 <template>
@@ -75,9 +84,11 @@ onUnmounted(() => document.removeEventListener('keydown', focusSourceOnEnter))
         <div class="lexicon-nav-label">工作區</div>
         <q-item clickable :active="view === 'translate'" @click="view = 'translate'"><q-item-section avatar><q-icon name="translate" /></q-item-section><q-item-section>翻譯</q-item-section></q-item>
         <q-item clickable :active="view === 'news'" @click="view = 'news'"><q-item-section avatar><q-icon name="newspaper" /></q-item-section><q-item-section>新聞</q-item-section></q-item>
-        <q-item clickable :active="view === 'learn'" @click="view = 'learn'"><q-item-section avatar><q-icon name="school" /></q-item-section><q-item-section>今日學習</q-item-section></q-item>
+        <q-item clickable :active="view === 'learn'" @click="view = 'learn'"><q-item-section avatar><q-icon :name="learningComplete ? 'check_circle' : 'school'" :color="learningComplete ? 'positive' : undefined" /></q-item-section><q-item-section>今日學習</q-item-section></q-item>
         <q-item clickable :active="view === 'youtube'" @click="view = 'youtube'"><q-item-section avatar><q-icon name="smart_display" /></q-item-section><q-item-section>YouTube</q-item-section></q-item>
-        <q-item clickable :active="view === 'ielts'" @click="view = 'ielts'"><q-item-section avatar><q-icon name="record_voice_over" /></q-item-section><q-item-section>IELTS 練習</q-item-section></q-item>
+        <div class="lexicon-nav-label q-mt-md">英文學習資源</div>
+        <q-item clickable :active="view === 'ielts'" @click="view = 'ielts'"><q-item-section avatar><q-icon name="record_voice_over" /></q-item-section><q-item-section>雅思練習</q-item-section></q-item>
+        <q-item clickable :active="view === 'history'" @click="view = 'history'"><q-item-section avatar><q-icon name="history" /></q-item-section><q-item-section>搜尋紀錄</q-item-section></q-item>
       </q-list>
       <div class="absolute-bottom q-pa-md lexicon-drawer-footer"><q-item clickable :active="view === 'settings'" @click="view = 'settings'"><q-item-section avatar><q-icon name="settings" /></q-item-section><q-item-section>設定</q-item-section></q-item></div>
     </q-drawer>
@@ -93,12 +104,8 @@ onUnmounted(() => document.removeEventListener('keydown', focusSourceOnEnter))
         <LearningWorkspace v-else-if="view === 'learn'" />
         <YouTubeTranscript v-else-if="view === 'youtube'" :transcript="youtubeTranscript" />
         <IeltsWorkspace v-else-if="view === 'ielts'" />
-        <template v-else>
-          <div class="text-overline text-primary">Workspace</div><div class="text-h3">Settings</div><div class="text-body1 text-grey-5 q-mt-sm">管理快捷鍵、模型與 Lexicon 的工作方式。</div>
-          <q-card flat class="lexicon-card q-mt-xl"><q-card-section><div class="text-h6">Appearance</div><div class="text-caption text-grey-5">選擇主題，會同步套用到所有視窗。</div><q-option-group v-model="theme" :options="[{label:'Dark',value:'dark'},{label:'Light',value:'light'},{label:'System',value:'system'}]" inline type="radio" class="q-mt-md" @update:model-value="chooseTheme" /></q-card-section></q-card>
-          <q-card flat class="lexicon-card q-mt-md"><q-card-section class="row justify-between"><div><div class="text-h6">快捷鍵</div><div class="text-caption text-grey-5">在任何 App 快速開啟翻譯 popup。</div></div><q-badge outline color="primary" :label="hotkeyLabel" /></q-card-section></q-card>
-          <q-card flat class="lexicon-card q-mt-md"><q-card-section class="row justify-between"><div><div class="text-h6">模型</div><div class="text-caption text-grey-5">{{ model?.exists ? `已下載 · ${formatBytes(model.size)}` : '尚未下載模型' }}</div></div><q-badge outline color="primary" :label="model?.runtimeState === 'ready' ? model.backend.toUpperCase() : '—'" /></q-card-section><q-card-section class="text-caption text-grey-6 ellipsis">{{ model?.path ?? '請從 Setup Wizard 下載 Gemma 4 E2B' }}</q-card-section></q-card>
-        </template>
+        <SearchHistoryWorkspace v-else-if="view === 'history'" />
+        <Settings v-else />
       </q-page>
     </q-page-container>
     <q-btn round dense flat icon="menu" class="fixed-top-left q-ma-sm" @click="drawerOpen = !drawerOpen" />

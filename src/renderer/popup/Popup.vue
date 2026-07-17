@@ -78,6 +78,10 @@ function escape(event: KeyboardEvent): void {
   if (event.key === 'Escape') window.api.closePopup()
 }
 
+function closeWhenBlurred(): void {
+  window.api.closePopup()
+}
+
 onMounted(() => {
   unsubscribe = window.api.onOpenPopup(({ text, source: origin }) => {
     sessionId.value += 1
@@ -88,12 +92,14 @@ onMounted(() => {
     window.api.resizePopup(304)
     if (text) void translate()
   })
+  window.addEventListener('blur', closeWhenBlurred)
   document.addEventListener('keydown', escape)
   document.addEventListener('keydown', focusSourceOnEnter)
 })
 
 onUnmounted(() => {
   unsubscribe?.()
+  window.removeEventListener('blur', closeWhenBlurred)
   document.removeEventListener('keydown', escape)
   document.removeEventListener('keydown', focusSourceOnEnter)
 })

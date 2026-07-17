@@ -1,7 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { type LookupResult, type TranslationRequestMode } from '../shared/lookup'
-import type { LearningDashboard, LearningItem, ReviewExerciseType, ReviewFeedback } from '../shared/learning'
+import type { GamificationDashboard, LearningDashboard, LearningItem, ReviewExerciseType, ReviewFeedback } from '../shared/learning'
 import type { NewsArticle } from '../main/news'
+import type { ModelBenchmark } from '../main/modelBenchmark'
 
 type OpenPopupPayload = {
   text: string | null
@@ -31,7 +32,7 @@ type DownloadProgress = {
   percent: number
 }
 
-type InstalledModel = { filename: string; path: string; size: number }
+type InstalledModel = { filename: string; path: string; size: number; modifiedAt: number }
 type HuggingFaceModel = { id: string; downloads: number; likes: number; updatedAt?: string }
 type HuggingFaceGgufFile = { filename: string; size: number; sha256?: string }
 type ModelDownloadRequest = { kind: 'curated'; id: string } | { kind: 'huggingface'; repository: string; filename: string } | { kind: 'custom'; url: string }
@@ -44,6 +45,14 @@ type StudyDirection = {
 }
 
 type IeltsWorkspace = { notes: string; directions: StudyDirection[] }
+type TranslationHistoryRecord = {
+  id: number
+  sourceText: string
+  translatedText: string
+  direction: 'zh-to-en' | 'en-to-zh'
+  sourceSurface: string
+  createdAt: string
+}
 
 function subscribe<T>(channel: string, callback: (value: T) => void): () => void {
   const listener = (_event: Electron.IpcRendererEvent, value: T): void => callback(value)
@@ -62,6 +71,8 @@ contextBridge.exposeInMainWorld('api', {
   resizePopup: (height: number): void => ipcRenderer.send('popup:resize', height),
   getModelStatus: (): Promise<ModelStatus> => ipcRenderer.invoke('model:status'),
   listModels: (): Promise<InstalledModel[]> => ipcRenderer.invoke('model:list'),
+  getModelBenchmarks: (): Promise<Record<string, ModelBenchmark>> => ipcRenderer.invoke('model:benchmarks'),
+  benchmarkModel: (filename: string): Promise<ModelBenchmark> => ipcRenderer.invoke('model:benchmark', filename),
   searchHuggingFaceModels: (query: string): Promise<HuggingFaceModel[]> => ipcRenderer.invoke('model:search-huggingface', query),
   listHuggingFaceGgufFiles: (repository: string): Promise<HuggingFaceGgufFile[]> => ipcRenderer.invoke('model:list-huggingface-files', repository),
   selectModel: (filename: string): Promise<{ ok: true } | { ok: false; message: string }> => ipcRenderer.invoke('model:select', filename),
@@ -82,13 +93,17 @@ contextBridge.exposeInMainWorld('api', {
   saveIeltsNotes: (notes: string): Promise<void> => ipcRenderer.invoke('ielts-workspace:save-notes', notes),
   saveIeltsDirections: (directions: StudyDirection[]): Promise<void> =>
     ipcRenderer.invoke('ielts-workspace:save-directions', directions),
+  generateIeltsWriting: (mode: 'outline' | 'feedback' | 'sample', taskType: 'task-1' | 'task-2', prompt: string, draft: string): Promise<string> =>
+    ipcRenderer.invoke('ielts-writing:generate', { mode, taskType, prompt, draft }),
+  listTranslationHistory: (): Promise<TranslationHistoryRecord[]> => ipcRenderer.invoke('history:list'),
   loadLearningDashboard: (): Promise<LearningDashboard> => ipcRenderer.invoke('learning:dashboard'),
   createLearningFromRecord: (recordId: number): Promise<LearningItem> => ipcRenderer.invoke('learning:create-from-record', recordId),
   createLearningFromSource: (sourceText: string, translatedText: string, direction: 'zh-to-en' | 'en-to-zh', sourceSurface: string): Promise<LearningItem> =>
     ipcRenderer.invoke('learning:create-from-source', { sourceText, translatedText, direction, sourceSurface }),
-  reviewLearningItem: (itemId: number, exerciseType: ReviewExerciseType, answer: string): Promise<ReviewFeedback> =>
-    ipcRenderer.invoke('learning:review', { itemId, exerciseType, answer }),
-  reviewLearningTask: (itemIds: number[], answer: string): Promise<Omit<ReviewFeedback, 'nextReviewAt'>> => ipcRenderer.invoke('learning:task', { itemIds, answer }),
+  reviewLearningItem: (itemId: number, exerciseType: ReviewExerciseType, answer: string, operationId?: string): Promise<ReviewFeedback> =>
+    ipcRenderer.invoke('learning:review', { itemId, exerciseType, answer, operationId }),
+  reviewLearningTask: (itemIds: number[], answer: string, operationId?: string): Promise<Omit<ReviewFeedback, 'nextReviewAt'>> => ipcRenderer.invoke('learning:task', { itemIds, answer, operationId }),
+  updateLearningPreferences: (preferences: { streakEnabled?: boolean; reducedMotion?: boolean }): Promise<GamificationDashboard> => ipcRenderer.invoke('learning:update-preferences', preferences),
   deleteLearningItem: (itemId: number): Promise<void> => ipcRenderer.invoke('learning:delete-item', itemId),
   clearLearningData: (): Promise<void> => ipcRenderer.invoke('learning:clear-data'),
   getSetting: (key: 'theme' | 'backup-on-quit' | 'backup-directory' | 'shortcut' | 'model'): Promise<string | undefined> => ipcRenderer.invoke('settings:get', key),

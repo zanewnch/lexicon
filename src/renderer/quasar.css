@@ -13,6 +13,7 @@ body { color: var(--theme-text); background: radial-gradient(circle at 72% 0%, r
 .ielts-topic-active .q-item__label--caption { color: var(--theme-accent-hover); }
 .ielts-detail-card { min-height: 448px; }
 .ielts-question { line-height: 1.55; }
+.ielts-writing-result { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
 .lexicon-popup { min-height: 100vh; padding: 18px 20px 16px; background: var(--theme-surface); }
 .lexicon-popup .q-field__native, .lexicon-page .q-field__native { color: var(--theme-text-strong); }
 .lexicon-popup .q-field__control, .lexicon-page .q-field__control { background: var(--theme-surface-strong); }

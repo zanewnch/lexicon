@@ -245,6 +245,45 @@ export class TranslationEngine {
     }
   }
 
+  async benchmarkTranslation(): Promise<{ firstTokenMs: number; tokensPerSecond: number }> {
+    await this.waitUntilReady()
+    if (!this.context) throw new Error('翻譯模型尚未載入')
+
+    const run = async (): Promise<{ firstTokenMs: number; tokensPerSecond: number }> => {
+      const session = new LlamaChatSession({
+        contextSequence: this.context!.getSequence(),
+        chatWrapper: this.getChatWrapper(),
+        systemPrompt: getTranslationSystemPrompt('en-to-zh'),
+        autoDisposeSequence: true
+      })
+      let firstTokenAt: number | undefined
+      let tokenCount = 0
+      const startedAt = performance.now()
+      try {
+        const response = await session.prompt('Please translate this short sentence into Traditional Chinese: The meeting starts at nine tomorrow morning.', {
+          maxTokens: 48,
+          temperature: 0,
+          trimWhitespaceSuffix: true,
+          onToken: (tokens) => {
+            firstTokenAt ??= performance.now()
+            tokenCount += tokens.length
+          }
+        })
+        if (!response.trim() || !firstTokenAt || tokenCount === 0) throw new Error('模型沒有產生可測量的翻譯結果')
+        const generatedMs = Math.max(1, performance.now() - firstTokenAt)
+        return { firstTokenMs: Math.round(firstTokenAt - startedAt), tokensPerSecond: tokenCount / (generatedMs / 1_000) }
+      } finally { session.dispose() }
+    }
+
+    await run()
+    const measurements = []
+    for (let index = 0; index < 3; index += 1) measurements.push(await run())
+    return {
+      firstTokenMs: median(measurements.map((measurement) => measurement.firstTokenMs)),
+      tokensPerSecond: median(measurements.map((measurement) => measurement.tokensPerSecond))
+    }
+  }
+
   async lookup(text: string, traceId?: string): Promise<LookupResult> {
     const input = text.trim()
     if (!input) throw new Error('請先輸入要查詢的英文單字或短語')
@@ -284,6 +323,20 @@ export class TranslationEngine {
       'You summarize a news article for a Traditional Chinese reader. Use only the supplied title and excerpt; do not add facts. Return 2 to 3 concise Traditional Chinese bullet points. If the excerpt lacks enough detail, explicitly say so.',
       input,
       300
+    )
+  }
+
+  async generateIeltsWriting(mode: 'outline' | 'feedback' | 'sample', taskType: 'task-1' | 'task-2', prompt: string, draft: string): Promise<string> {
+    const taskLabel = taskType === 'task-1' ? 'IELTS Academic Writing Task 1' : 'IELTS Writing Task 2'
+    const instruction = mode === 'outline'
+      ? `Create a practical writing plan for ${taskLabel}. Give a concise thesis or overview, then a paragraph-by-paragraph outline with the key idea, supporting detail, and useful phrases. Use Traditional Chinese for explanations and English for proposed sentences.`
+      : mode === 'feedback'
+        ? `Give constructive feedback on the learner's ${taskLabel} draft. Use these headings: What works, Top 3 improvements, Revised examples, and Next draft checklist. Explain in Traditional Chinese, keep English examples natural, and do not invent a band score.`
+        : `Write an original, high-quality reference response for ${taskLabel}. Follow the prompt, use clear structure and precise but natural vocabulary. After the response, add a short Traditional Chinese note explaining its structure. Label it as an AI-generated reference, not an official IELTS answer and not a guaranteed band score.`
+    return this.promptText(
+      `You are an experienced IELTS writing coach for a Traditional Chinese learner. ${instruction} Do not claim to be an IELTS examiner or to give an official score. Do not copy or quote proprietary sample essays.`,
+      `Writing prompt:\n${prompt.trim() || '(The learner has not entered a prompt.)'}\n\nLearner draft:\n${draft.trim() || '(No draft yet.)'}`,
+      mode === 'sample' ? 1200 : 800
     )
   }
 
@@ -364,6 +417,12 @@ export class TranslationEngine {
     if (!this.chatWrapper) throw new Error('翻譯模型尚未載入')
     return this.chatWrapper
   }
+}
+
+function median(values: number[]): number {
+  const sorted = [...values].sort((left, right) => left - right)
+  const middle = Math.floor(sorted.length / 2)
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
 }
 
 function cleanTranslation(response: string): string {
