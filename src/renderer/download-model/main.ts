@@ -1,4 +1,3 @@
-import '../shared.css'
-import { initializeTheme } from '../theme'
-
-initializeTheme()
+import { mount } from '../quasar'
+import DownloadModel from './DownloadModel.vue'
+mount(DownloadModel)

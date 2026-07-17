@@ -1,6 +1,5 @@
 export type ThemeMode = 'dark' | 'light' | 'system'
 
-const THEME_STORAGE_KEY = 'lexicon.theme'
 const THEME_CHANNEL_NAME = 'lexicon-theme'
 const DEFAULT_THEME: ThemeMode = 'dark'
 export const THEME_CHANGE_EVENT = 'lexicon:theme-change'
@@ -27,29 +26,14 @@ export function initializeTheme(): ThemeMode {
     })
   }
 
-  window.addEventListener('storage', (event) => {
-    if (event.key === THEME_STORAGE_KEY && isThemeMode(event.newValue)) applyTheme(event.newValue)
-  })
-
   return mode
 }
 
 export function getThemeMode(): ThemeMode {
-  try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY)
-    return isThemeMode(stored) ? stored : DEFAULT_THEME
-  } catch {
-    return DEFAULT_THEME
-  }
+  return DEFAULT_THEME
 }
 
 export function setTheme(mode: ThemeMode): void {
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, mode)
-  } catch {
-    // The current renderer can still apply the theme even when storage is unavailable.
-  }
-
   applyTheme(mode)
   themeChannel?.postMessage(mode)
 }

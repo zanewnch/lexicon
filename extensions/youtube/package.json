@@ -1,0 +1,13 @@
+{
+  "name": "lexicon-youtube-extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build"
+  },
+  "devDependencies": {
+    "@wxt-dev/module-vue": "^1.0.3",
+    "wxt": "^0.20.27"
+  }
+}

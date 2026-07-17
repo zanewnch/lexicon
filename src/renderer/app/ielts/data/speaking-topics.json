@@ -1,0 +1,2575 @@
+{
+  "summary": {
+    "generated_at": "2026-07-17T06:10:13.979622+00:00",
+    "source": {
+      "name": "IELTS Bro",
+      "site_url": "https://www.ieltsbro.com/question-bank/",
+      "api_base_url": "https://hcp-server.ieltsbro.com",
+      "usage_note": "Personal study metadata only. Do not redistribute copied third-party content or bypass access controls."
+    },
+    "counts": {
+      "topics": 106,
+      "new_topics": 49,
+      "part_1": 46,
+      "part_2_3": 60
+    },
+    "by_category": {
+      "events": 27,
+      "people": 14,
+      "places": 14,
+      "things": 51
+    },
+    "by_priority": {
+      "High frequency": 9,
+      "New and high frequency": 15,
+      "New topic": 34,
+      "Regular practice": 48
+    }
+  },
+  "topics": [
+    {
+      "id": "320220506105403",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Watch",
+      "question_count": 4,
+      "sample_question_id": 220220506105442,
+      "sample_question": "Do you wear a watch?",
+      "recent_exam_count": 7903,
+      "learner_count": "17.4万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "High frequency"
+    },
+    {
+      "id": "320220113174007",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Cars",
+      "question_count": 6,
+      "sample_question_id": 220220113174032,
+      "sample_question": "Did you enjoy traveling by car when you were a kid?",
+      "recent_exam_count": 2583,
+      "learner_count": "16.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "High frequency"
+    },
+    {
+      "id": "320220111153548",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Websites",
+      "question_count": 7,
+      "sample_question_id": 220220111153611,
+      "sample_question": "What kinds of websites do you often visit?",
+      "recent_exam_count": 1806,
+      "learner_count": "14.5万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "High frequency"
+    },
+    {
+      "id": "320220105094841",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Mirrors",
+      "question_count": 4,
+      "sample_question_id": 220220105094949,
+      "sample_question": "Do you like looking at yourself in the mirror? How often?",
+      "recent_exam_count": 1694,
+      "learner_count": "13.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "High frequency"
+    },
+    {
+      "id": "1",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "Work or studies",
+      "question_count": 22,
+      "sample_question_id": 5741,
+      "sample_question": "What subjects are you studying?",
+      "recent_exam_count": 1519,
+      "learner_count": "224.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320220110155214",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "收到特殊蛋糕",
+      "question_count": 7,
+      "sample_question_id": 220220110155247,
+      "sample_question": "Describe a special cake you received from others\nYou should say:\nWhen it happened\nWhere it happened\nWho you got the cake from\nAnd explain why it’s a special cake",
+      "recent_exam_count": 1379,
+      "learner_count": "5.3万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "High frequency"
+    },
+    {
+      "id": "320210906093321",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "为家人骄傲",
+      "question_count": 7,
+      "sample_question_id": 220210906093529,
+      "sample_question": "Describe a time when you felt proud of a family member\nYou should say:\nWhen it happened\nWho the person is \nWhat the person did\nAnd explain why you felt proud of him/her",
+      "recent_exam_count": 1190,
+      "learner_count": "4.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320260508135834",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "Public gardens and parks",
+      "question_count": 8,
+      "sample_question_id": 220260508135853,
+      "sample_question": "Did you like going to parks as a child?",
+      "recent_exam_count": 994,
+      "learner_count": "2.4万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "High frequency"
+    },
+    {
+      "id": "320240904161626",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "Teachers",
+      "question_count": 6,
+      "sample_question_id": 220240904161656,
+      "sample_question": "Do you have a favorite teacher?",
+      "recent_exam_count": 966,
+      "learner_count": "10.3万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "High frequency"
+    },
+    {
+      "id": "320260128223349",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Views",
+      "question_count": 4,
+      "sample_question_id": 220260128223409,
+      "sample_question": "Do you like taking pictures of different views?",
+      "recent_exam_count": 924,
+      "learner_count": "11.0万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320260508134141",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "Shopping",
+      "question_count": 4,
+      "sample_question_id": 220260508134215,
+      "sample_question": "Do you like shopping?",
+      "recent_exam_count": 819,
+      "learner_count": "1.4万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "High frequency"
+    },
+    {
+      "id": "194",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "The area you live in",
+      "question_count": 7,
+      "sample_question_id": 220230516163019,
+      "sample_question": "Are the people in your neighborhood nice and friendly?",
+      "recent_exam_count": 749,
+      "learner_count": "62.6万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320260507193409",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Music",
+      "question_count": 4,
+      "sample_question_id": 220260507193453,
+      "sample_question": "Do you prefer sad or happy music?",
+      "recent_exam_count": 742,
+      "learner_count": "1.2万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "High frequency"
+    },
+    {
+      "id": "30",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "Home & Accommodation",
+      "question_count": 17,
+      "sample_question_id": 5920,
+      "sample_question": "Who do you live with?",
+      "recent_exam_count": 700,
+      "learner_count": "154.1万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320220110135628",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Sports programs",
+      "question_count": 6,
+      "sample_question_id": 220220110135723,
+      "sample_question": "Do you like watching sports programs on TV?",
+      "recent_exam_count": 595,
+      "learner_count": "14.2万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260508133541",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "Tidiness",
+      "question_count": 4,
+      "sample_question_id": 220260508133603,
+      "sample_question": "Do you like to keep things tidy?",
+      "recent_exam_count": 588,
+      "learner_count": "1.1万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320250510165445",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "Spare time",
+      "question_count": 5,
+      "sample_question_id": 220250510165503,
+      "sample_question": "Do you often have free time?",
+      "recent_exam_count": 560,
+      "learner_count": "10.3万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320260512095045",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "擅长学习和说语言的人",
+      "question_count": 7,
+      "sample_question_id": 220260512095119,
+      "sample_question": "Describe a person who is good at learning and speaking new languages\nYou should say:\nHow you got to know him/her\nHow he/she learns a new language\nWhat languages he/she can speak\nAnd explain how you feel about him/her",
+      "recent_exam_count": 525,
+      "learner_count": "6144",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320210901180829",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Headphones",
+      "question_count": 5,
+      "sample_question_id": 220210902110507,
+      "sample_question": "Do you use headphones?",
+      "recent_exam_count": 518,
+      "learner_count": "8.3万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260324101253",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "去过且喜欢的城市",
+      "question_count": 7,
+      "sample_question_id": 220260324101324,
+      "sample_question": "Describe a city you enjoyed visiting\nYou should say:\nWhere it is\nWhen you visited it\nHow long you stayed there\nWhat you did there\nAnd explain why you enjoyed visiting it",
+      "recent_exam_count": 504,
+      "learner_count": "2.5万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320260522220729",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "改变重要想法",
+      "question_count": 5,
+      "sample_question_id": 220260522220758,
+      "sample_question": "Describe a time when you changed an important opinion of yours\nYou should say:\nWhen you changed your opinion\nWhat the original opinion was\nWhy you changed it\nAnd explain how you felt about the experience",
+      "recent_exam_count": 504,
+      "learner_count": "4822",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320230909101428",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Clothing",
+      "question_count": 6,
+      "sample_question_id": 220230909101453,
+      "sample_question": "What kind of clothes do you like to wear?",
+      "recent_exam_count": 483,
+      "learner_count": "13.1万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320210902172856",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Science",
+      "question_count": 6,
+      "sample_question_id": 220210902175623,
+      "sample_question": "Do you like science?",
+      "recent_exam_count": 462,
+      "learner_count": "23.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320230110100415",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Outer space and stars",
+      "question_count": 4,
+      "sample_question_id": 220230110100846,
+      "sample_question": "Have you ever learnt about outer space and stars?",
+      "recent_exam_count": 462,
+      "learner_count": "17.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320230109174046",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Art",
+      "question_count": 4,
+      "sample_question_id": 220230109174122,
+      "sample_question": "Do you like art?",
+      "recent_exam_count": 462,
+      "learner_count": "17.1万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320240107163124",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Social media",
+      "question_count": 5,
+      "sample_question_id": 220240107163203,
+      "sample_question": "When did you start using social media?",
+      "recent_exam_count": 434,
+      "learner_count": "12.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260107103546",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Food",
+      "question_count": 4,
+      "sample_question_id": 220260107103607,
+      "sample_question": "What is your favourite food?",
+      "recent_exam_count": 420,
+      "learner_count": "5.8万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320260515110320",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "包含动物的故事或书",
+      "question_count": 7,
+      "sample_question_id": 220260515110351,
+      "sample_question": "Describe a story/book with animals in it\nYou should say:\nWhat animals are in it\nWhat the story/book is about\nWhy you read the story/book \nAnd explain what you think of this story/book",
+      "recent_exam_count": 413,
+      "learner_count": "5665",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320230510110651",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "The city you live in",
+      "question_count": 11,
+      "sample_question_id": 220230510110752,
+      "sample_question": "What city do you live in?",
+      "recent_exam_count": 392,
+      "learner_count": "29.4万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320230904214511",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Films/cinemas",
+      "question_count": 7,
+      "sample_question_id": 220230904214620,
+      "sample_question": "What films do you like?",
+      "recent_exam_count": 385,
+      "learner_count": "15.4万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "31",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "Hometown",
+      "question_count": 15,
+      "sample_question_id": 220241102210429,
+      "sample_question": "Have you learned anything about the history of your hometown?",
+      "recent_exam_count": 378,
+      "learner_count": "122.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320220902181316",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "Singing",
+      "question_count": 6,
+      "sample_question_id": 220220902181432,
+      "sample_question": "Do you like singing? Why?",
+      "recent_exam_count": 364,
+      "learner_count": "18.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260503144059",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "去过的无聊地方",
+      "question_count": 7,
+      "sample_question_id": 220260503144121,
+      "sample_question": "Describe a boring place\nYou should say:\nWhere it is\nWho you went there with\nWhat you did there\nAnd explain why you think it is a boring place",
+      "recent_exam_count": 350,
+      "learner_count": "3801",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260115152848",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Building",
+      "question_count": 4,
+      "sample_question_id": 220260115152906,
+      "sample_question": "Are there tall buildings near your home?",
+      "recent_exam_count": 329,
+      "learner_count": "7.4万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320260128222842",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Childhood activities",
+      "question_count": 4,
+      "sample_question_id": 220260128222914,
+      "sample_question": "What are your favourite activities?",
+      "recent_exam_count": 322,
+      "learner_count": "6.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "181",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "Morning routines",
+      "question_count": 4,
+      "sample_question_id": 7935,
+      "sample_question": "Do you like to get up early in the morning?",
+      "recent_exam_count": 322,
+      "learner_count": "14.6万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320230906154051",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Gifts",
+      "question_count": 5,
+      "sample_question_id": 220230906154140,
+      "sample_question": "Have you ever sent handmade gifts to others?",
+      "recent_exam_count": 315,
+      "learner_count": "16.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320260108113400",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "Typing",
+      "question_count": 4,
+      "sample_question_id": 220260108113421,
+      "sample_question": "Do you prefer typing or handwriting?",
+      "recent_exam_count": 308,
+      "learner_count": "5.1万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320200518174831",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Jokes & Comedies",
+      "question_count": 5,
+      "sample_question_id": 220200518175024,
+      "sample_question": "Are you good at telling jokes?",
+      "recent_exam_count": 308,
+      "learner_count": "7.2万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320210902175633",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Pets and Animals",
+      "question_count": 8,
+      "sample_question_id": 220210902175743,
+      "sample_question": "Have you ever visited a zoo?",
+      "recent_exam_count": 301,
+      "learner_count": "13.0万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New and high frequency"
+    },
+    {
+      "id": "320260110191125",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Sports team",
+      "question_count": 4,
+      "sample_question_id": 220260110191234,
+      "sample_question": "Have you ever been part of a sports team?",
+      "recent_exam_count": 280,
+      "learner_count": "5.4万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260508141006",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "喜欢或不喜欢的高建筑",
+      "question_count": 7,
+      "sample_question_id": 220260508141039,
+      "sample_question": "Describe a tall building you like or dislike\nYou should say:\nWhat it is used for \nWhere it is\nWhat it looks like\nAnd explain why you like/dislike it",
+      "recent_exam_count": 273,
+      "learner_count": "3367",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320220509093011",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Evening time",
+      "question_count": 6,
+      "sample_question_id": 220250110153609,
+      "sample_question": "What do you hate doing in the evening?",
+      "recent_exam_count": 259,
+      "learner_count": "18.3万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260510165517",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "特别场合的食物",
+      "question_count": 5,
+      "sample_question_id": 220260510170318,
+      "sample_question": "Describe a food that people eat on special occasions/events\nYou should say:\nWhat it is\nWhat the special event/occasion is\nHow it is cooked/made \nAnd explain why people eat it on that special occasion/event",
+      "recent_exam_count": 259,
+      "learner_count": "3004",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260115155645",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "完美工作",
+      "question_count": 7,
+      "sample_question_id": 220260115155724,
+      "sample_question": "Describe a perfect job you would like to have in the future \nYou should say:\nWhat it is\nHow you knew it\nWhat you need to learn to get this job\nAnd explain why you think it is a perfect job for you",
+      "recent_exam_count": 252,
+      "learner_count": "2.6万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260512120853",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "推荐旅行过的地方",
+      "question_count": 7,
+      "sample_question_id": 220260512121300,
+      "sample_question": "Describe a place you have travelled to that you would like to recommend to others\nYou should say:\nWhat it is \nWhere it is \nWhat you saw and did there \nAnd explain why you would like to recommend it to others",
+      "recent_exam_count": 252,
+      "learner_count": "4401",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260512124208",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "名人出演的广告",
+      "question_count": 7,
+      "sample_question_id": 220260512124235,
+      "sample_question": "Describe an advertisement with a famous person in it\nYou should say:\nWho the person is\nWhere you can see it \nWhat the advertisement is about\nAnd explain how you feel about the advertisement",
+      "recent_exam_count": 252,
+      "learner_count": "4723",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260520113952",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "长久目标/抱负",
+      "question_count": 7,
+      "sample_question_id": 220260520114023,
+      "sample_question": "Describe a long-term goal/ambition you would like to achieve\nYou should say:\nHow long you have had this goal/ambition\nWhat it is\nHow you will achieve it\nAnd explain why you set it",
+      "recent_exam_count": 245,
+      "learner_count": "4730",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320240417155859",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "想颁布的新法律",
+      "question_count": 7,
+      "sample_question_id": 220240417160016,
+      "sample_question": "Describe a new law you would like to introduce in your country\nYou should say:\nWhat law it is\nWhat changes this law brings\nWhether this new law will be popular\nHow you came up with the new law\nAnd explain how you feel about this new law",
+      "recent_exam_count": 245,
+      "learner_count": "4.3万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260510161247",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "想从事医疗行业的人",
+      "question_count": 5,
+      "sample_question_id": 220260510161317,
+      "sample_question": "Describe a person you know who would like to choose a career in the medical field (e.g. a doctor, a nurse)\nYou should say:\nWhen you knew him/her\nWhen he/she started to think about that\nWhat he/she would like to do\nAnd explain why he/she would like to choose this career",
+      "recent_exam_count": 245,
+      "learner_count": "2913",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260509145434",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "喜欢在家/花园种植物的人",
+      "question_count": 7,
+      "sample_question_id": 220260509145509,
+      "sample_question": "Describe a person who loves to grow plants (e.g. vegetables, flowers) at home or in the garden\nYou should say:\nWho this person is\nWhat plants he/she grows\nHow he/she grows the plants \nAnd explain why he/she loves growing plants",
+      "recent_exam_count": 238,
+      "learner_count": "4054",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320240416103153",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "Life stages",
+      "question_count": 6,
+      "sample_question_id": 220240416103247,
+      "sample_question": "What did you often do with your friends in your childhood?",
+      "recent_exam_count": 231,
+      "learner_count": "7.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260509151057",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "拥有成功商业的人",
+      "question_count": 7,
+      "sample_question_id": 220260509151143,
+      "sample_question": "Describe a person you know who has a successful business\nYou should say:\nWho this person is\nHow you got to know him/her\nWhy and how he/she started the business\nWhat business he/she does\nAnd explain why you think the business is successful",
+      "recent_exam_count": 231,
+      "learner_count": "3917",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260510163834",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "喜欢的现场体育赛事",
+      "question_count": 7,
+      "sample_question_id": 220260510163858,
+      "sample_question": "Describe a live sports event you watched and liked\nYou should say:\nWhat it was\nWhen and where you watched it\nWho you watched it with \nAnd explain why you liked it",
+      "recent_exam_count": 231,
+      "learner_count": "3325",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260305150230",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "爱护自然之人",
+      "question_count": 7,
+      "sample_question_id": 220260305150325,
+      "sample_question": "Describe a person who likes to look after the natural world\nYou should say:\nWho this person is \nWhat he or she does\nHow he or she does it\nHow often he or she does it\nAnd explain how you feel about this person",
+      "recent_exam_count": 224,
+      "learner_count": "2.8万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260109201342",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "Walking",
+      "question_count": 5,
+      "sample_question_id": 220260109201412,
+      "sample_question": "Do you walk a lot?",
+      "recent_exam_count": 224,
+      "learner_count": "6.2万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320220909092508",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Morning time",
+      "question_count": 5,
+      "sample_question_id": 220220909093912,
+      "sample_question": "Do you like getting up early in the morning?",
+      "recent_exam_count": 224,
+      "learner_count": "22.2万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260509153137",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "在团队中工作",
+      "question_count": 7,
+      "sample_question_id": 220260509153212,
+      "sample_question": "Describe a time when you worked in a group\nYou should say:\nWhat you did\nWho you worked with\nWhat problems you faced\nAnd explain why you worked in the group",
+      "recent_exam_count": 224,
+      "learner_count": "3268",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320210107183432",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "喜欢拜访但不想住的家",
+      "question_count": 7,
+      "sample_question_id": 220210107183504,
+      "sample_question": "Describe a home that you like to visit but do not want to live in\nYou should say:\nWhere it is\nWhat it is like\nWhy you like to visit it\nAnd explain why you would not like to live there",
+      "recent_exam_count": 224,
+      "learner_count": "2.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260522215630",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "保护环境的法律",
+      "question_count": 7,
+      "sample_question_id": 220260522215714,
+      "sample_question": "Describe a law on environmental protection\nYou should say:\nWhat it is \nHow you first learned about it \nWho benefits from it \nAnd explain how you feel about this law",
+      "recent_exam_count": 224,
+      "learner_count": "3700",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260122104708",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "给别人建议",
+      "question_count": 7,
+      "sample_question_id": 220260122104742,
+      "sample_question": "Describe a time when you gave advice to others\nYou should say:\nWhen it was\nTo whom you gave the advice\nWhat the advice was\nAnd explain why you gave the advice",
+      "recent_exam_count": 217,
+      "learner_count": "3.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260108111439",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "擅长做计划的人",
+      "question_count": 7,
+      "sample_question_id": 220260108111522,
+      "sample_question": "Describe a person who makes plans a lot and is good at planning\nYou should say:\nWho he/she is\nHow you knew him/her \nWhat plans he/she makes \nAnd explain how you feel about this person",
+      "recent_exam_count": 217,
+      "learner_count": "2.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320250428222631",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "想见的名人",
+      "question_count": 7,
+      "sample_question_id": 220250428222712,
+      "sample_question": "Describe a famous person you would like to meet\nYou should say:\nWho he/she is\nHow you knew him/her\nHow/where you would like to meet him/her\nAnd explain why you would like to meet him/ her",
+      "recent_exam_count": 217,
+      "learner_count": "4.3万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260110200707",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Scenery",
+      "question_count": 4,
+      "sample_question_id": 220260110200842,
+      "sample_question": "Do you look out the window at the scenery when travelling by bus or car?",
+      "recent_exam_count": 217,
+      "learner_count": "6.2万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320240107183217",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Memory",
+      "question_count": 4,
+      "sample_question_id": 220240107183244,
+      "sample_question": "Are you good at memorising things?",
+      "recent_exam_count": 217,
+      "learner_count": "17.3万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260510174029",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "在成功公司工作的人",
+      "question_count": 4,
+      "sample_question_id": 220260510174058,
+      "sample_question": "Describe a person who works in a successful company\nYou should say:\nWho he/she is\nWhat he/she does in the company\nWhat business the company does\nAnd explain why you think it is a successful company",
+      "recent_exam_count": 217,
+      "learner_count": "2023",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320240906200819",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "近期看过且享受的电影",
+      "question_count": 7,
+      "sample_question_id": 220240906200909,
+      "sample_question": "Describe a movie you watched and enjoyed recently\nYou should say:\nWhen and where you watched it\nWho you watched it with\nWhat it was about\nAnd explain why you watched this movie",
+      "recent_exam_count": 210,
+      "learner_count": "4.1万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260206151404",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "想从事的短期海外工作",
+      "question_count": 7,
+      "sample_question_id": 220260206151447,
+      "sample_question": "Describe a short-term job you want to have in a foreign country\nYou should say:\nWhere it is\nHow you know of it\nWhat the job is\nAnd explain why you want to do it",
+      "recent_exam_count": 210,
+      "learner_count": "3.4万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260110192623",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "Reading",
+      "question_count": 4,
+      "sample_question_id": 220260110195020,
+      "sample_question": "Do you like reading?",
+      "recent_exam_count": 210,
+      "learner_count": "6.5万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260520102210",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "很久没收到回复的信息",
+      "question_count": 7,
+      "sample_question_id": 220260520102355,
+      "sample_question": "Describe a time when you sent a message or an email to someone but received no reply for a long time\nYou should say:\nWho you sent it to\nWhat the message/email was about\nWhether you finally received the reply \nAnd explain how you felt about the experience",
+      "recent_exam_count": 210,
+      "learner_count": "3377",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320220507101744",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Old buildings",
+      "question_count": 4,
+      "sample_question_id": 220220507101853,
+      "sample_question": "Have you ever seen old buildings in the city？",
+      "recent_exam_count": 210,
+      "learner_count": "14.2万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320230511111130",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Dream and ambition",
+      "question_count": 4,
+      "sample_question_id": 220230511111156,
+      "sample_question": "What was your childhood dream?",
+      "recent_exam_count": 210,
+      "learner_count": "11.8万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320220908180342",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "发小",
+      "question_count": 7,
+      "sample_question_id": 220220908180425,
+      "sample_question": "Describe a friend from your childhood\nYou should say:\nWho he/she is\nWhere and how you met each other\nWhat you often did together\nAnd explain what made you like him/her",
+      "recent_exam_count": 203,
+      "learner_count": "7.2万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320210901143903",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "早起经历",
+      "question_count": 7,
+      "sample_question_id": 220210901144041,
+      "sample_question": "Describe a time when you got up early\nYou should say:\nWhen it was\nWhat you did\nWhy you got up early\nAnd how you felt about it",
+      "recent_exam_count": 196,
+      "learner_count": "3.2万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260112152654",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "喜欢画画的孩子",
+      "question_count": 7,
+      "sample_question_id": 220260112152740,
+      "sample_question": "Describe a child who loves drawing/painting\nYou should say:\nWho he/she is\nHow/when you knew him/her\nHow often he/she draws/paints\nAnd explain why you think he/she loves drawing/painting",
+      "recent_exam_count": 189,
+      "learner_count": "2.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320220506151447",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "安静的地方",
+      "question_count": 7,
+      "sample_question_id": 220220506151648,
+      "sample_question": "Describe a quiet place you like to go\nYou should say:\nWhere it is\nHow you knew it\nHow often you go there\nWhat you do there\nAnd explain how you feel about the place",
+      "recent_exam_count": 182,
+      "learner_count": "8.8万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260512095739",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "遇到的科技问题",
+      "question_count": 7,
+      "sample_question_id": 220260512095807,
+      "sample_question": "Describe a challenging technological problem you faced\nYou should say:\nWhat the problem was\nWhen and where you faced it \nHow challenging it was \nAnd explain how you solved it",
+      "recent_exam_count": 182,
+      "learner_count": "3792",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320230513170924",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "重要决定",
+      "question_count": 7,
+      "sample_question_id": 220230513171050,
+      "sample_question": "Describe an important decision that you made\nYou should say: \nWhat the decision was \nHow you made your decision \nWhat the results of the decision were \nAnd explain why it was important",
+      "recent_exam_count": 175,
+      "learner_count": "6.0万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260509122224",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "有趣视频",
+      "question_count": 7,
+      "sample_question_id": 220260509122303,
+      "sample_question": "Describe an interesting video\nYou should say:\nWhen and where you watched it \nWhat it is about \nWhy you watched it \nAnd explain how you feel about it",
+      "recent_exam_count": 175,
+      "learner_count": "2832",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320241210184344",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "Hobby",
+      "question_count": 4,
+      "sample_question_id": 220241210184410,
+      "sample_question": "Do you have any hobbies?",
+      "recent_exam_count": 168,
+      "learner_count": "12.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320250125151335",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "近期改变的计划",
+      "question_count": 7,
+      "sample_question_id": 220250125151421,
+      "sample_question": "Describe a plan that you had to change recently\nYou should say:\n When this happened\n What made you change the plan\n What the new plan was\n And how you felt about the change",
+      "recent_exam_count": 168,
+      "learner_count": "1.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260115162732",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "想拥有的科技产品",
+      "question_count": 7,
+      "sample_question_id": 220260115162806,
+      "sample_question": "Describe a piece of technology (not a phone) that you would like to own\nYou should say:\nWhat it is\nHow much it costs\nHow you knew it\nAnd explain why you would like to own it",
+      "recent_exam_count": 140,
+      "learner_count": "3.0万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320210902173203",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "机智解决问题的人",
+      "question_count": 7,
+      "sample_question_id": 220210902173215,
+      "sample_question": "Describe a person who solved a problem in a smart way \nYou should say:\nWho this person is\nWhat the problem was\nHow he/she solved it\nAnd explain why you think he/she did it in a smart way",
+      "recent_exam_count": 119,
+      "learner_count": "5.2万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320210106230809",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "发挥想象力",
+      "question_count": 7,
+      "sample_question_id": 220210106230851,
+      "sample_question": "Describe a time you needed to use your imagination\nYou should say:\nWhen it was\nWhy you needed to use imagination\nHow difficult or easy it was\nAnd explain how you felt about it",
+      "recent_exam_count": 119,
+      "learner_count": "3.9万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320240105101338",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "Crowded place",
+      "question_count": 5,
+      "sample_question_id": 220240105101408,
+      "sample_question": "Is the city where you live crowded?",
+      "recent_exam_count": 119,
+      "learner_count": "13.5万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320210507100003",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "微笑的场合",
+      "question_count": 7,
+      "sample_question_id": 220210507100031,
+      "sample_question": "Describe an occasion when many people were smiling\nYou should say:\nWhen it happened \nWho you were with \nWhat happened \nAnd explain why most people were smiling",
+      "recent_exam_count": 112,
+      "learner_count": "4.4万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260109222511",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "App/程序",
+      "question_count": 7,
+      "sample_question_id": 220260109222608,
+      "sample_question": "Describe a program or app on your computer or phone\nYou should say: \nWhat it is \nHow often you use it\nWhen/how you use it\nWhen/how you found it \nAnd explain how you feel about it",
+      "recent_exam_count": 112,
+      "learner_count": "2.6万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260510172107",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "想有空时去旅游的地方",
+      "question_count": 3,
+      "sample_question_id": 220260510172414,
+      "sample_question": "Describe a place you would like to visit in your free time\nYou should say:\nWhere it is\nWhat you will do there\nHow long you will stay there\nAnd explain why you would like to visit it",
+      "recent_exam_count": 112,
+      "learner_count": "1492",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320210903181718",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "自行车/摩托车/汽车旅行",
+      "question_count": 7,
+      "sample_question_id": 220210903181736,
+      "sample_question": "Describe a bicycle/motorcycle/car trip you would like to go \nYou should say: \nWho you would like to go with\nWhere you would like to go \nWhen you would like to go\nAnd explain why you would like to go by bicycle/motorcycle/car",
+      "recent_exam_count": 105,
+      "learner_count": "4.4万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320220519133843",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "交通拥堵",
+      "question_count": 7,
+      "sample_question_id": 220220519134611,
+      "sample_question": "Describe a time when you were stuck in a traffic jam for a very long time \nYou should say: \nWhen it happened \nWhere you were stuck \nWhat you did while waiting \nAnd explain how you felt in the traffic jam",
+      "recent_exam_count": 105,
+      "learner_count": "5.4万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320210506172400",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "想要颁布的环保法律",
+      "question_count": 5,
+      "sample_question_id": 220210506172424,
+      "sample_question": "Describe an environmental law you would like your country to introduce\nYou should say:\nWhat law it should be\nWhy people should follow the law\nWhether the law will be popular\nAnd explain how you feel about this law",
+      "recent_exam_count": 105,
+      "learner_count": "3.1万",
+      "time_tag": "2026年5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "441",
+      "source": "ieltsbro",
+      "part": "part_1",
+      "part_label": "Part 1",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "History",
+      "question_count": 4,
+      "sample_question_id": 8926,
+      "sample_question": "Did you like history when you were young?",
+      "recent_exam_count": 98,
+      "learner_count": "7.6万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320260121091053",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "people",
+      "category_label": "People",
+      "categories": [
+        "people"
+      ],
+      "topic_name": "乐于助人的人",
+      "question_count": 7,
+      "sample_question_id": 220260121091124,
+      "sample_question": "Describe a person who often helps others \nYou should say:\nWho this person is \nHow often he/she helps others\nHow/why he/she helps others\nAnd how you feel about this person",
+      "recent_exam_count": 91,
+      "learner_count": "3.2万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "people"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320210906105850",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "花费超过预期的物品",
+      "question_count": 7,
+      "sample_question_id": 220210906111230,
+      "sample_question": "Describe an item on which you spent more than expected\nYou should say:\nWhat it is\nHow much you spent on it \nWhy you bought it\nAnd explain why you think you spent more than expected",
+      "recent_exam_count": 84,
+      "learner_count": "5.1万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320220906173255",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "喜欢的电视/网络节目",
+      "question_count": 7,
+      "sample_question_id": 220220906173339,
+      "sample_question": "Describe a TV or online program you like to watch\nYou should say:\nWhat it is \nWhat it is about\nWho you watch it with\nAnd explain why you like to watch it",
+      "recent_exam_count": 84,
+      "learner_count": "6.5万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320250512172244",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "商店",
+      "question_count": 7,
+      "sample_question_id": 220250512172312,
+      "sample_question": "Describe a shop/store you enjoy visiting\nYou should say:\nWhat the shop’s name is\nWhere it is\nHow often you visit it\nAnd explain why you like to visit it",
+      "recent_exam_count": 84,
+      "learner_count": "4.1万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "10521",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "places",
+      "category_label": "Places",
+      "categories": [
+        "places"
+      ],
+      "topic_name": "重要河流/湖泊",
+      "question_count": 7,
+      "sample_question_id": 7589,
+      "sample_question": "Describe an important river/lake in your country\nYou should say:\nWhere it is located\nHow big/long it is\nWhat it looks like\nAnd explain why it is important",
+      "recent_exam_count": 84,
+      "learner_count": "7.3万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "places"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320210108141253",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "对家庭重要的东西",
+      "question_count": 7,
+      "sample_question_id": 220210108141317,
+      "sample_question": "Describe something important that has been kept in your family for a long time\nYou should say:\nWhat it is\nWhen your family had it\nHow your family got it\nAnd explain why it is important to your family",
+      "recent_exam_count": 77,
+      "learner_count": "4.5万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320210110202818",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "鼓励别人做不愿做的事",
+      "question_count": 7,
+      "sample_question_id": 220210110203102,
+      "sample_question": "Describe a time when you encouraged someone to do something that he/she didn't want to do\nYou should say:\nWho he or she is\nWhat you encouraged him/her to do\nHow he/she reacted\nAnd explain why you encouraged him/her to do it",
+      "recent_exam_count": 70,
+      "learner_count": "4.1万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320210506103250",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "禁用手机的场合",
+      "question_count": 7,
+      "sample_question_id": 220210506103411,
+      "sample_question": "Describe an occasion when you were not allowed to use your mobile phone\nYou should say:\nWhen it was\nWhere it was\nWhy you were not allowed to use your mobile phone\nAnd how you felt about it",
+      "recent_exam_count": 70,
+      "learner_count": "4.5万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260121084605",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "不享受的音乐活动",
+      "question_count": 7,
+      "sample_question_id": 220260121084640,
+      "sample_question": "Describe an event you attended in which you didn’t enjoy the music played\nYou should say:\nWhat it was\nWho you went with\nWhy you decided to go there\nAnd explain why you didn’t enjoy it",
+      "recent_exam_count": 63,
+      "learner_count": "2.8万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320260120164724",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "朋友自学",
+      "question_count": 7,
+      "sample_question_id": 220260120164801,
+      "sample_question": "Describe one of your friends who learned something without a teacher \nYou should say:\nWho he/she is\nWhat he/she learned\nWhy he/she learned this \nAnd explain whether it would be easier to learn from a teacher",
+      "recent_exam_count": 49,
+      "learner_count": "2.5万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320220110153558",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "语言学习",
+      "question_count": 7,
+      "sample_question_id": 220220110153642,
+      "sample_question": "Describe a thing you did to learn another language\nYou should say:\nWhat language you learned\nWhat you did\nHow it helped you learn the language\nAnd how you felt about it",
+      "recent_exam_count": 49,
+      "learner_count": "4.3万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320220114190505",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "组织快乐活动",
+      "question_count": 7,
+      "sample_question_id": 220220114190928,
+      "sample_question": "Describe a time when you organized a happy event successfully \nYou should say:\nWhat the event was\nHow you prepared for it\nWho helped you to organize it\nAnd explain why you think it was a successful event",
+      "recent_exam_count": 49,
+      "learner_count": "4.0万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    },
+    {
+      "id": "320250125150609",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "things",
+      "category_label": "Things",
+      "categories": [
+        "things"
+      ],
+      "topic_name": "有趣的建筑",
+      "question_count": 7,
+      "sample_question_id": 220250125150710,
+      "sample_question": "Describe an interesting building \nYou should say:\n Where it is\n What it looks like\n What function it has\n And explain why you think it is interesting",
+      "recent_exam_count": 42,
+      "learner_count": "2.7万",
+      "time_tag": "2026年5-8月",
+      "is_new": true,
+      "source_categories": [
+        "all",
+        "things"
+      ],
+      "priority": "New topic"
+    },
+    {
+      "id": "320220507111056",
+      "source": "ieltsbro",
+      "part": "part_2_3",
+      "part_label": "Part 2/3",
+      "category": "events",
+      "category_label": "Events",
+      "categories": [
+        "events"
+      ],
+      "topic_name": "花费甚少的外出日",
+      "question_count": 7,
+      "sample_question_id": 220220507111142,
+      "sample_question": "Describe a special day out that cost you little money/didn’t cost you much\nYou should say:\nWhen the day was\nWhere you went\nHow much you spent\nAnd explain how you feel about the day",
+      "recent_exam_count": 0,
+      "learner_count": "4.5万",
+      "time_tag": "非大陆地区5-8月",
+      "is_new": false,
+      "source_categories": [
+        "all",
+        "events"
+      ],
+      "priority": "Regular practice"
+    }
+  ]
+}

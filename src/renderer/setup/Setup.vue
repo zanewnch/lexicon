@@ -1,0 +1,14 @@
+<script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue'
+import { initializeTheme } from '../theme'
+initializeTheme()
+const percent = ref(0); const progressLabel = ref('按下按鈕開始下載'); const message = ref(''); const downloading = ref(false); const ready = ref(false); const badge = ref('尚未下載')
+const hotkeyLabel = window.api.platform === 'darwin' ? '⌘ + Shift + L' : 'Ctrl + Shift + Q'
+const unsubs: Array<() => void> = []
+function formatBytes(bytes: number): string { return bytes >= 1024 ** 3 ? `${(bytes / 1024 ** 3).toFixed(2)} GB` : `${(bytes / 1024 ** 2).toFixed(0)} MB` }
+async function download(): Promise<void> { downloading.value = true; message.value = ''; progressLabel.value = '正在連線到 Hugging Face…'; const response = await window.api.downloadModel(); if (!response.ok) { message.value = response.message; downloading.value = false; badge.value = '下載失敗' } }
+function close(): void { window.api.closeSetup() }
+onMounted(async () => { unsubs.push(window.api.onDownloadProgress(({ received, total, percent: value }) => { percent.value = value; progressLabel.value = `${value}% · ${formatBytes(received)} / ${formatBytes(total)}`; badge.value = '下載中' }), window.api.onDownloadState(() => { progressLabel.value = '正在驗證 SHA256…'; badge.value = '驗證中' }), window.api.onModelReady(() => { ready.value = true; downloading.value = false; percent.value = 100; progressLabel.value = `模型已載入，可以按 ${hotkeyLabel} 開始翻譯`; badge.value = '已就緒' }), window.api.onSetupError((error) => { message.value = error; downloading.value = false; badge.value = '下載失敗' })); const model = await window.api.getModelStatus(); if (model.exists) { percent.value = 100; progressLabel.value = '模型已下載，正在載入…'; downloading.value = true; badge.value = '載入中' } })
+onUnmounted(() => unsubs.forEach((unsubscribe) => unsubscribe()))
+</script>
+<template><div class="lexicon-page"><div class="text-overline text-primary">Lexicon · First setup</div><div class="text-h4">先下載翻譯模型</div><p class="text-body1 text-grey-5">Lexicon 會在你的電腦本機執行 Gemma 4，不會把翻譯內容送到雲端。</p><q-card flat class="lexicon-card q-mt-lg"><q-card-section class="row justify-between items-start"><div><div class="text-h6">Gemma 4 E2B</div><div class="text-caption text-grey-5">最小 GGUF 版本 · 約 2.29 GB · 只下載一次</div></div><q-badge :color="ready ? 'positive' : message ? 'negative' : 'primary'" :label="badge" /></q-card-section><q-card-section><q-linear-progress rounded size="10px" :value="percent / 100" color="primary" /><div class="lexicon-muted q-mt-sm">{{ progressLabel }}</div><div v-if="message" class="text-negative q-mt-sm">{{ message }}</div></q-card-section><q-card-actions align="right"><q-btn flat label="稍後再說" :disable="downloading || ready" @click="close" /><q-btn color="primary" :loading="downloading" :disable="ready" :label="message ? '重新下載' : '下載模型'" @click="download" /></q-card-actions></q-card></div></template>

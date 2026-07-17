@@ -1,17 +1,21 @@
 import {
+  type ChatWrapper,
   Gemma4ChatWrapper,
   getLlama,
   getLlamaGpuTypes,
   LlamaChatSession,
   LlamaLogLevel,
+  resolveChatWrapper,
   type Llama,
   type LlamaContext,
   type LlamaGpuType,
   type LlamaModel
 } from 'node-llama-cpp'
 import { type TranslationDirection } from '../shared/translationDirection'
+import { type LookupResult } from '../shared/lookup'
+import type { LearningExtraction, ReviewFeedback, ReviewExerciseType } from '../shared/learning'
 
-export type ComputeBackend = 'cuda' | 'vulkan' | 'cpu'
+export type ComputeBackend = 'metal' | 'cuda' | 'vulkan' | 'cpu'
 export type ModelRuntimeState = 'idle' | 'loading' | 'ready' | 'error'
 
 const isDevelopment = Boolean(process.env.ELECTRON_RENDERER_URL)
@@ -46,12 +50,55 @@ Return only the ${targetLanguage} result. Do not add explanations, labels, notes
 Do not show or describe your reasoning.`
 }
 
+function getLookupSystemPrompt(): string {
+  return `You are Lexicon, an English learner's dictionary for Traditional Chinese speakers.
+For the English word or short phrase the user provides, return exactly one valid JSON object and nothing else. Do not use Markdown or code fences.
+
+Use this exact schema:
+{"term":"...","ipa":"/.../","meaning":"...","example":"...","exampleTranslation":"..."}
+
+Rules:
+- term: repeat the queried English word or phrase with normal capitalization.
+- ipa: General American IPA, enclosed in slashes.
+- meaning: concise Traditional Chinese meaning for the most likely common sense; use semicolons only when needed.
+- example: one natural, complete English sentence that demonstrates the meaning.
+- exampleTranslation: a natural Traditional Chinese translation of that exact example.
+- Do not invent rare senses or extra facts. Every field must be a non-empty string.`
+}
+
+function getLearningExtractionPrompt(): string {
+  return `You turn a real translation into one useful English learning item for a Traditional Chinese speaker.
+Return exactly one JSON object, no Markdown or commentary.
+Schema: {"promptZh":"...","targetEn":"...","focusExpression":"...","explanationZh":"...","alternatives":["..."],"tags":["..."]}
+Rules:
+- targetEn must be one natural English sentence the learner can reuse.
+- promptZh is the matching Traditional Chinese communication intent.
+- focusExpression is one useful English phrase that appears verbatim in targetEn.
+- explanationZh is a concise Traditional Chinese usage explanation, maximum 40 Chinese characters.
+- alternatives contains at most one natural alternative; tags contains 1 to 3 short Traditional Chinese situation tags.
+- Do not invent details not in the input.`
+}
+
+function getReviewPrompt(item: LearningExtraction, exerciseType: ReviewExerciseType): string {
+  return `You give concise, encouraging feedback to a Traditional Chinese English learner.
+Return exactly one JSON object, no Markdown or commentary.
+Schema: {"communicativeSuccess":true,"message":"...","correction":"...","naturalAnswer":"...","result":"again|hard|good|easy"}
+Rules:
+- Judge whether the learner's answer communicates the prompt.
+- correction has at most one important correction in Traditional Chinese; use an empty string if none.
+- message is concise Traditional Chinese encouragement.
+- naturalAnswer is one natural English answer.
+- Result: again if meaning fails; hard if understandable but focus expression or grammar needs correction; good if correct; easy only if correct and natural.
+Learning item: ${JSON.stringify(item)}
+Exercise type: ${exerciseType}`
+}
+
 export class TranslationEngine {
   private llama: Llama | undefined
   private model: LlamaModel | undefined
   private context: LlamaContext | undefined
+  private chatWrapper: ChatWrapper | undefined
   private loadOperation: Promise<void> | undefined
-  private requestQueue = Promise.resolve()
   private selectedBackend: ComputeBackend = 'cpu'
   private runtimeState: ModelRuntimeState = 'idle'
   private runtimeError: string | undefined
@@ -59,12 +106,10 @@ export class TranslationEngine {
 
   async load(modelPath: string): Promise<void> {
     if (this.loadOperation) {
-      debugLog('model load already in progress')
       return this.loadOperation
     }
 
     const startedAt = Date.now()
-    debugLog('model load started', { modelPath })
     this.runtimeState = 'loading'
     this.runtimeError = undefined
 
@@ -72,11 +117,11 @@ export class TranslationEngine {
       await this.dispose()
 
       const supportedGpuTypes: LlamaGpuType[] = await getLlamaGpuTypes('supported').catch(() => [])
-      debugLog('GPU backends detected', { supportedGpuTypes })
       const candidates: Array<{ backend: ComputeBackend; gpu: LlamaGpuType }> = []
 
       // node-llama-cpp does not expose an NPU backend for GGUF models.
       // Keep this explicit so an NPU is never reported as being used when it is not.
+      if (supportedGpuTypes.includes('metal')) candidates.push({ backend: 'metal', gpu: 'metal' })
       if (supportedGpuTypes.includes('cuda')) candidates.push({ backend: 'cuda', gpu: 'cuda' })
       if (supportedGpuTypes.includes('vulkan')) candidates.push({ backend: 'vulkan', gpu: 'vulkan' })
       candidates.push({ backend: 'cpu', gpu: false })
@@ -88,8 +133,6 @@ export class TranslationEngine {
         let context: LlamaContext | undefined
 
         try {
-          const candidateStartedAt = Date.now()
-          debugLog('backend load attempt started', { backend: candidate.backend })
           llama = await getLlama({ gpu: candidate.gpu, build: 'never', logLevel: LlamaLogLevel.error })
           model = await llama.loadModel({
             modelPath,
@@ -100,14 +143,13 @@ export class TranslationEngine {
           this.llama = llama
           this.model = model
           this.context = context
+          this.chatWrapper = model.fileInfo.metadata.general.architecture === 'gemma4'
+            ? new Gemma4ChatWrapper({ reasoning: false })
+            : resolveChatWrapper(model)
           this.selectedBackend = candidate.backend
           this.runtimeState = 'ready'
 
           writeLog('info', `[Lexicon] Gemma 4 compute backend: ${candidate.backend}`)
-          debugLog('backend load attempt completed', {
-            backend: candidate.backend,
-            elapsedMs: Date.now() - candidateStartedAt
-          })
           return
         } catch (error) {
           lastError = error
@@ -124,7 +166,6 @@ export class TranslationEngine {
 
     try {
       await this.loadOperation
-      debugLog('model load completed', { backend: this.selectedBackend, elapsedMs: Date.now() - startedAt })
     } catch (error) {
       this.loadOperation = undefined
       await this.dispose()
@@ -175,40 +216,18 @@ export class TranslationEngine {
 
     const operationId = traceId ?? `translation-${++this.nextTranslationOperationId}`
     const startedAt = Date.now()
-    debugLog('translation received', {
-      operationId,
-      textLength: input.length,
-      direction,
-      runtimeState: this.runtimeState,
-      backend: this.selectedBackend
-    })
-
     try {
-      const readinessStartedAt = Date.now()
       await this.waitUntilReady()
-      debugLog('translation model ready', { operationId, elapsedMs: Date.now() - readinessStartedAt })
       if (!this.context) throw new Error('翻譯模型尚未載入')
 
-      const previous = this.requestQueue
-      let release!: () => void
-      this.requestQueue = new Promise<void>((resolve) => {
-        release = resolve
-      })
-      const queueStartedAt = Date.now()
-      await previous
-      debugLog('translation queue acquired', { operationId, waitedMs: Date.now() - queueStartedAt })
-
-      try {
-        const session = new LlamaChatSession({
+      const session = new LlamaChatSession({
           contextSequence: this.context.getSequence(),
-          chatWrapper: new Gemma4ChatWrapper({ reasoning: false }),
+          chatWrapper: this.getChatWrapper(),
           systemPrompt: getTranslationSystemPrompt(direction),
           autoDisposeSequence: true
         })
 
         try {
-          const promptStartedAt = Date.now()
-          debugLog('translation prompt started', { operationId })
           const response = await session.prompt(input, {
             maxTokens: 512,
             temperature: 0,
@@ -216,23 +235,114 @@ export class TranslationEngine {
           })
           const cleaned = cleanTranslation(response)
           if (!cleaned) throw new Error('模型沒有產生翻譯結果')
-          debugLog('translation prompt completed', {
-            operationId,
-            promptElapsedMs: Date.now() - promptStartedAt,
-            elapsedMs: Date.now() - startedAt,
-            resultLength: cleaned.length
-          })
           return cleaned
         } finally {
           session.dispose()
         }
-      } finally {
-        release()
-      }
     } catch (error) {
       debugError('translation failed', error, { operationId, elapsedMs: Date.now() - startedAt })
       throw error
     }
+  }
+
+  async lookup(text: string, traceId?: string): Promise<LookupResult> {
+    const input = text.trim()
+    if (!input) throw new Error('請先輸入要查詢的英文單字或短語')
+
+    const operationId = traceId ?? `lookup-${++this.nextTranslationOperationId}`
+    const startedAt = Date.now()
+    try {
+      await this.waitUntilReady()
+      if (!this.context) throw new Error('翻譯模型尚未載入')
+
+      const session = new LlamaChatSession({
+          contextSequence: this.context.getSequence(),
+          chatWrapper: this.getChatWrapper(),
+          systemPrompt: getLookupSystemPrompt(),
+          autoDisposeSequence: true
+        })
+
+        try {
+          const response = await session.prompt(input, {
+            maxTokens: 512,
+            temperature: 0,
+            trimWhitespaceSuffix: true
+          })
+          return parseLookupResult(response)
+        } finally {
+          session.dispose()
+        }
+    } catch (error) {
+      debugError('lookup failed', error, { operationId, elapsedMs: Date.now() - startedAt })
+      throw error
+    }
+  }
+
+  async summarizeNews(title: string, description: string): Promise<string> {
+    const input = `Title: ${title}\nArticle excerpt: ${description || '(No excerpt available)'}`
+    return this.promptText(
+      'You summarize a news article for a Traditional Chinese reader. Use only the supplied title and excerpt; do not add facts. Return 2 to 3 concise Traditional Chinese bullet points. If the excerpt lacks enough detail, explicitly say so.',
+      input,
+      300
+    )
+  }
+
+  async extractLearningItem(sourceText: string, translatedText: string, direction: TranslationDirection, traceId?: string): Promise<LearningExtraction> {
+    const fallback = fallbackLearningExtraction(sourceText, translatedText, direction)
+    try {
+      const response = await this.promptJson(getLearningExtractionPrompt(), `Source: ${sourceText}\nTranslation: ${translatedText}\nDirection: ${direction}`, traceId)
+      return parseLearningExtraction(response, fallback)
+    } catch (error) {
+      debugError('learning extraction failed; using fallback', error)
+      return fallback
+    }
+  }
+
+  async evaluateLearningAnswer(item: LearningExtraction, exerciseType: ReviewExerciseType, answer: string, traceId?: string): Promise<Omit<ReviewFeedback, 'nextReviewAt'>> {
+    const fallback = fallbackReview(item, answer)
+    try {
+      const response = await this.promptJson(getReviewPrompt(item, exerciseType), `Learner answer: ${answer}`, traceId)
+      return parseReviewFeedback(response, fallback)
+    } catch (error) {
+      debugError('learning review failed; using fallback', error)
+      return fallback
+    }
+  }
+
+  async evaluateLearningTask(items: LearningExtraction[], answer: string, traceId?: string): Promise<Omit<ReviewFeedback, 'nextReviewAt'>> {
+    const fallback = fallbackReview(items[0], answer)
+    try {
+      const response = await this.promptJson(`You assess an English learner's short real-world message. Return exactly one JSON object with this schema: {"communicativeSuccess":true,"message":"...","correction":"...","naturalAnswer":"...","result":"again|hard|good|easy"}. Use concise Traditional Chinese for message and correction. Judge whether the response completes the task and naturally uses the requested expressions. Correct only the most important point.`, `Required expressions: ${JSON.stringify(items.map((item) => item.focusExpression))}\nUseful models: ${JSON.stringify(items.map((item) => item.targetEn))}\nLearner message: ${answer}`, traceId)
+      return parseReviewFeedback(response, fallback)
+    } catch (error) {
+      debugError('learning task review failed; using fallback', error)
+      return fallback
+    }
+  }
+
+  private async promptJson(systemPrompt: string, input: string, _traceId?: string): Promise<string> {
+    await this.waitUntilReady()
+    if (!this.context) throw new Error('翻譯模型尚未載入')
+    const session = new LlamaChatSession({
+      contextSequence: this.context.getSequence(), chatWrapper: this.getChatWrapper(),
+      systemPrompt, autoDisposeSequence: true
+    })
+    try { return await session.prompt(input, { maxTokens: 512, temperature: 0, trimWhitespaceSuffix: true }) }
+    finally { session.dispose() }
+  }
+
+  private async promptText(systemPrompt: string, input: string, maxTokens: number): Promise<string> {
+    await this.waitUntilReady()
+    if (!this.context) throw new Error('翻譯模型尚未載入')
+    const session = new LlamaChatSession({
+      contextSequence: this.context.getSequence(), chatWrapper: this.getChatWrapper(),
+      systemPrompt, autoDisposeSequence: true
+    })
+    try {
+      const response = await session.prompt(input, { maxTokens, temperature: 0, trimWhitespaceSuffix: true })
+      if (!response.trim()) throw new Error('模型沒有產生新聞摘要')
+      return response.trim()
+    } finally { session.dispose() }
   }
 
   async dispose(): Promise<void> {
@@ -240,6 +350,7 @@ export class TranslationEngine {
     const model = this.model
     const llama = this.llama
     this.context = undefined
+    this.chatWrapper = undefined
     this.model = undefined
     this.llama = undefined
     this.selectedBackend = 'cpu'
@@ -247,6 +358,11 @@ export class TranslationEngine {
     await context?.dispose()
     await model?.dispose()
     await llama?.dispose()
+  }
+
+  private getChatWrapper(): ChatWrapper {
+    if (!this.chatWrapper) throw new Error('翻譯模型尚未載入')
+    return this.chatWrapper
   }
 }
 
@@ -258,9 +374,77 @@ function cleanTranslation(response: string): string {
   return result.trim()
 }
 
-function debugLog(event: string, details: Record<string, unknown> = {}): void {
-  if (!isDevelopment) return
-  writeLog('log', `[Lexicon debug][llm] ${event}`, details)
+function parseLookupResult(response: string): LookupResult {
+  const start = response.indexOf('{')
+  const end = response.lastIndexOf('}')
+  if (start === -1 || end <= start) throw new Error('模型回傳的查詞格式不正確，請重試')
+
+  let value: unknown
+  try {
+    value = JSON.parse(response.slice(start, end + 1))
+  } catch {
+    throw new Error('模型回傳的查詞格式不正確，請重試')
+  }
+
+  if (!value || typeof value !== 'object') throw new Error('模型回傳的查詞格式不正確，請重試')
+  const candidate = value as Record<string, unknown>
+  return {
+    term: getLookupField(candidate, 'term'),
+    ipa: getLookupField(candidate, 'ipa'),
+    meaning: getLookupField(candidate, 'meaning'),
+    example: getLookupField(candidate, 'example'),
+    exampleTranslation: getLookupField(candidate, 'exampleTranslation')
+  }
+}
+
+function getLookupField(candidate: Record<string, unknown>, field: keyof LookupResult): string {
+  const value = candidate[field]
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error('模型回傳的查詞內容不完整，請重試')
+  }
+  return value.trim()
+}
+
+function parseJson(response: string): Record<string, unknown> {
+  const start = response.indexOf('{'); const end = response.lastIndexOf('}')
+  if (start < 0 || end <= start) throw new Error('模型回傳 JSON 格式不正確')
+  const value: unknown = JSON.parse(response.slice(start, end + 1))
+  if (!value || typeof value !== 'object') throw new Error('模型回傳 JSON 格式不正確')
+  return value as Record<string, unknown>
+}
+function stringField(value: Record<string, unknown>, key: string, fallback: string): string { return typeof value[key] === 'string' && value[key].trim() ? value[key].trim() : fallback }
+function stringList(value: Record<string, unknown>, key: string, fallback: string[]): string[] { return Array.isArray(value[key]) ? value[key].filter((item): item is string => typeof item === 'string' && Boolean(item.trim())).slice(0, key === 'alternatives' ? 1 : 3) : fallback }
+function fallbackLearningExtraction(source: string, translated: string, direction: TranslationDirection): LearningExtraction {
+  const targetEn = direction === 'zh-to-en' ? translated : source
+  const promptZh = direction === 'zh-to-en' ? source : translated
+  const focusExpression = targetEn.split(/\s+/).slice(0, Math.min(4, targetEn.split(/\s+/).length)).join(' ')
+  return { promptZh, targetEn, focusExpression, explanationZh: '從你的真實使用情境練習這句英文。', alternatives: [], tags: ['個人翻譯'] }
+}
+function parseLearningExtraction(response: string, fallback: LearningExtraction): LearningExtraction {
+  const value = parseJson(response)
+  const targetEn = stringField(value, 'targetEn', fallback.targetEn)
+  const focusExpression = stringField(value, 'focusExpression', fallback.focusExpression)
+  return {
+    promptZh: stringField(value, 'promptZh', fallback.promptZh), targetEn,
+    focusExpression: targetEn.toLowerCase().includes(focusExpression.toLowerCase()) ? focusExpression : fallback.focusExpression,
+    explanationZh: stringField(value, 'explanationZh', fallback.explanationZh),
+    alternatives: stringList(value, 'alternatives', fallback.alternatives), tags: stringList(value, 'tags', fallback.tags)
+  }
+}
+function fallbackReview(item: LearningExtraction, answer: string): Omit<ReviewFeedback, 'nextReviewAt'> {
+  const success = answer.trim().toLowerCase().includes(item.focusExpression.toLowerCase())
+  return success
+    ? { communicativeSuccess: true, message: '做得好，你成功取回了核心表達。', correction: '', naturalAnswer: item.targetEn, result: 'good' }
+    : { communicativeSuccess: Boolean(answer.trim()), message: '再試一次，先把核心表達放進句子裡。', correction: `試著使用「${item.focusExpression}」。`, naturalAnswer: item.targetEn, result: answer.trim() ? 'hard' : 'again' }
+}
+function parseReviewFeedback(response: string, fallback: Omit<ReviewFeedback, 'nextReviewAt'>): Omit<ReviewFeedback, 'nextReviewAt'> {
+  const value = parseJson(response); const result = value.result
+  return {
+    communicativeSuccess: typeof value.communicativeSuccess === 'boolean' ? value.communicativeSuccess : fallback.communicativeSuccess,
+    message: stringField(value, 'message', fallback.message), correction: stringField(value, 'correction', fallback.correction),
+    naturalAnswer: stringField(value, 'naturalAnswer', fallback.naturalAnswer),
+    result: result === 'again' || result === 'hard' || result === 'good' || result === 'easy' ? result : fallback.result
+  }
 }
 
 function debugError(event: string, error: unknown, details: Record<string, unknown> = {}): void {

@@ -1,0 +1,9 @@
+{
+  "name": "com.lexicon.youtube",
+  "description": "Lexicon YouTube translation bridge",
+  "path": "LexiconNativeHost.exe",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://beihelddlfklfpemplilnfhcffcjgdkp/"
+  ]
+}

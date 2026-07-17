@@ -1,4 +1,3 @@
-import '../shared.css'
-import { initializeTheme } from '../theme'
-
-initializeTheme()
+import { mount } from '../quasar'
+import Settings from './Settings.vue'
+mount(Settings)

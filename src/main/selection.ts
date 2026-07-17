@@ -100,12 +100,22 @@ async function sendCtrlC(): Promise<void> {
   )
 }
 
+async function copySelectionOnMac(): Promise<void> {
+  // System Events needs Accessibility permission. Without it, osascript exits with an
+  // error and the caller simply falls back to the manual-input popup.
+  await execFileAsync(
+    'osascript',
+    ['-e', 'tell application "System Events" to keystroke "c" using command down'],
+    { timeout: 2_000, maxBuffer: 10_000 }
+  )
+}
+
 function sleep(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }
 
 export async function captureSelectedText(): Promise<string | null> {
-  if (process.platform !== 'win32') return null
+  if (process.platform !== 'win32' && process.platform !== 'darwin') return null
 
   const originalClipboard = clipboard.readText()
   const sentinel = `__lexicon_selection_${Date.now()}_${Math.random().toString(36).slice(2)}__`
@@ -113,7 +123,8 @@ export async function captureSelectedText(): Promise<string | null> {
   try {
     clipboard.writeText(sentinel)
     await sleep(HOTKEY_RELEASE_DELAY_MS)
-    await sendCtrlC()
+    if (process.platform === 'win32') await sendCtrlC()
+    else await copySelectionOnMac()
 
     const deadline = Date.now() + COPY_TIMEOUT_MS
     let selectedText = ''

@@ -7,40 +7,32 @@
   "type": "module",
   "scripts": {
     "dev": "electron-vite dev",
+    "youtube:dev": "npm --prefix extensions/youtube run dev",
+    "youtube:build": "npm --prefix extensions/youtube run build",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "build": "npm run typecheck && electron-vite build",
-    "package": "npm run build && electron-builder"
-  },
-  "build": {
-    "appId": "com.lexicon.app",
-    "productName": "Lexicon",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "out/**/*",
-      "package.json"
-    ],
-    "asarUnpack": [
-      "node_modules/node-llama-cpp/**"
-    ],
-    "win": {
-      "target": "nsis"
-    },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false
-    }
+    "native-host:build": "dotnet publish native-host/LexiconNativeHost.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o native-host/publish/win-x64",
+    "native-host:build:mac": "dotnet publish native-host/LexiconNativeHost.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -o native-host/publish/osx-arm64 && dotnet publish native-host/LexiconNativeHost.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o native-host/publish/osx-x64",
+    "package": "npm run native-host:build && npm run youtube:build && npm run build && electron-builder --config electron-builder.config.mjs --win",
+    "package:mac": "npm run native-host:build:mac && npm run youtube:build && npm run build && electron-builder --config electron-builder.config.mjs --mac",
+    "ielts:materials": "python tools/ielts/build_study_materials.py"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
     "electron": "^43.1.1",
     "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
-    "typescript": "^7.0.2"
+    "sass-embedded": "^1.100.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
-    "node-llama-cpp": "^3.19.0"
+    "@quasar/extras": "^1.18.0",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "node-llama-cpp": "^3.19.0",
+    "quasar": "^2.21.4",
+    "vue": "^3.5.40"
   },
   "allowScripts": {
     "electron@43.1.1": true,

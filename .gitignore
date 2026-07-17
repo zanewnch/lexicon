@@ -8,3 +8,15 @@ dist/
 .DS_Store
 Thumbs.db
 
+# IELTS material-tool runtime artifacts
+tools/ielts/**/__pycache__/
+tools/ielts/**/*.pyc
+
+# Native Messaging host build output
+native-host/bin/
+native-host/obj/
+native-host/publish/
+extensions/youtube/dist/
+extensions/youtube/.output/
+extensions/youtube/.wxt/
+

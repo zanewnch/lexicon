@@ -6,6 +6,7 @@
   --theme-surface: rgb(15 23 42 / 97%);
   --theme-surface-strong: #111c30;
   --theme-surface-muted: rgb(17 28 48 / 84%);
+  --theme-sidebar: #0b1322;
   --theme-text: #e8edf5;
   --theme-text-strong: #f8fafc;
   --theme-muted: #aab7c8;
@@ -39,6 +40,7 @@
   --theme-surface: rgb(255 255 255 / 96%);
   --theme-surface-strong: #ffffff;
   --theme-surface-muted: rgb(255 255 255 / 88%);
+  --theme-sidebar: #ffffff;
   --theme-text: #172033;
   --theme-text-strong: #0f172a;
   --theme-muted: #526176;

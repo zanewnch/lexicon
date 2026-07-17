@@ -1,5 +1,6 @@
 import { resolve } from 'node:path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   main: {
@@ -16,6 +17,16 @@ export default defineConfig({
     }
   },
   renderer: {
+    plugins: [vue()],
+    css: {
+      preprocessorOptions: {
+        sass: {
+          // Quasar still uses Sass @import internally. The dependency's migration
+          // is outside this project, so suppress only that known warning class.
+          silenceDeprecations: ['import']
+        }
+      }
+    },
     build: {
       rollupOptions: {
         input: {

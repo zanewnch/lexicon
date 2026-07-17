@@ -1,30 +1,50 @@
 import {
   app,
   BrowserWindow,
+  dialog,
   globalShortcut,
   ipcMain,
   Menu,
   nativeImage,
   Notification,
   screen,
+  shell,
   Tray
 } from 'electron'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { captureSelectedText } from './selection'
 import {
   downloadModel,
+  CURATED_MODELS,
+  getModelPathForFilename,
   getModelPath,
   getModelStatus,
-  modelExists
+  listHuggingFaceGgufFiles,
+  listInstalledModels,
+  modelExists,
+  searchHuggingFaceModels
 } from './model'
 import { TranslationEngine } from './llm'
+import { TranslationJobScheduler } from './translationJobScheduler'
+import { IeltsWorkspaceStore, type IeltsWorkspace, type StudyDirection } from './ieltsWorkspaceStore'
+import { LearningStore } from './learningStore'
+import type { LearningExtraction, ReviewExerciseType } from '../shared/learning'
 import { detectTranslationDirection } from '../shared/translationDirection'
+import { isEnglishLookupQuery, type TranslationRequestMode } from '../shared/lookup'
+import { startYouTubeBridge } from './youtubeBridge'
+import { registerMacYouTubeNativeHost } from './youtubeNativeHost'
+import { type YouTubeTranscript } from '../shared/youtube'
+import { isSafeArticleUrl, searchNews } from './news'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const HOTKEY = 'Ctrl+Shift+Q'
+// Command+Shift+Q is reserved by macOS for log out, so use a conflict-free
+// default there while retaining the established Windows shortcut.
+const DEFAULT_HOTKEY = process.platform === 'darwin'
+  ? 'CommandOrControl+Shift+L'
+  : 'CommandOrControl+Shift+Q'
 const POPUP_WIDTH = 420
-const POPUP_DEFAULT_HEIGHT = 360
+const POPUP_DEFAULT_HEIGHT = 304
 const POPUP_MAX_HEIGHT = 720
 const APP_WIDTH = 1000
 const APP_HEIGHT = 680
@@ -42,12 +62,17 @@ type OpenPopupPayload = { text: string | null; source: 'selection' | 'manual' }
 
 const windows = new Map<PageName, BrowserWindow>()
 const translator = new TranslationEngine()
+const translationJobs = new TranslationJobScheduler()
+let ieltsWorkspaceStore: IeltsWorkspaceStore | undefined
+let learningStore: LearningStore | undefined
 let tray: Tray | undefined
 let hotkeyRegistered = false
+let registeredHotkey = DEFAULT_HOTKEY
 let popupAnchorPoint: Electron.Point | undefined
+let popupOpenRequestId = 0
 let nextTranslationRequestId = 0
+let shouldQuitAfterBackup = false
 const activeTranslationRequestIds = new Set<number>()
-
 const gotSingleInstanceLock = app.requestSingleInstanceLock()
 
 if (!gotSingleInstanceLock) {
@@ -69,6 +94,17 @@ if (!gotSingleInstanceLock) {
     createTray()
     createWindow('popup')
     registerIpc()
+    startYouTubeBridge({
+      translator,
+      translationJobs,
+      onCaptionPopup: (caption) => void openPopup({ text: caption.text, source: 'selection' }, screen.getCursorScreenPoint()),
+      onTranscript: showYouTubeTranscript,
+      onTranscriptSegment: (videoId, segmentId, translation) => sendYouTubeEvent('youtube:transcript-segment', { videoId, segmentId, translation }),
+      onTranscriptProgress: (videoId, completed, total) => sendYouTubeEvent('youtube:transcript-progress', { videoId, completed, total })
+    })
+    void registerMacYouTubeNativeHost().catch((error) => {
+      debugError('youtube', 'macOS native host registration failed', error)
+    })
     void initializeModel()
 
     app.on('activate', () => {
@@ -79,9 +115,17 @@ if (!gotSingleInstanceLock) {
     })
   })
 
+  app.on('before-quit', (event) => {
+    if (shouldQuitAfterBackup || !shouldBackupOnQuit()) return
+    event.preventDefault()
+    void backupBeforeQuit()
+  })
+
   app.on('will-quit', () => {
     globalShortcut.unregisterAll()
     void translator.dispose()
+    ieltsWorkspaceStore?.close()
+    learningStore?.close()
     tray?.destroy()
   })
 
@@ -133,10 +177,8 @@ function createWindow(page: PageName): BrowserWindow {
     // Keep the popup above the source window while it is active. Moving focus to
     // another app (or the desktop) should put it away; Ctrl+Shift+Q can show it again.
     window.setAlwaysOnTop(true, 'floating')
-    window.on('focus', () => debugLog('popup', 'focus received'))
     window.on('blur', () => {
       if (!window.isDestroyed() && window.isVisible()) {
-        debugLog('popup', 'blur hid popup')
         window.hide()
       }
     })
@@ -199,21 +241,37 @@ function showMainWindow(): void {
   mainWindow.focus()
 }
 
+function showYouTubeTranscript(transcript: YouTubeTranscript): void {
+  const mainWindow = createWindow('app')
+  const sendTranscript = (): void => {
+    if (!mainWindow.isDestroyed()) mainWindow.webContents.send('youtube:transcript-open', transcript)
+    mainWindow.show()
+    mainWindow.focus()
+  }
+  if (mainWindow.webContents.isLoading()) mainWindow.webContents.once('did-finish-load', sendTranscript)
+  else sendTranscript()
+}
+
+function sendYouTubeEvent(channel: string, payload: unknown): void {
+  const mainWindow = windows.get('app')
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload)
+}
+
 async function initializeModel(): Promise<void> {
   const appDataPath = app.getPath('appData')
-  if (!(await modelExists(appDataPath))) {
-    debugLog('model', 'model file missing; opening setup')
+  const selectedFilename = getIeltsWorkspaceStore().getSetting('model')
+  const selectedPath = selectedFilename ? getModelPathForFilename(appDataPath, selectedFilename) : getModelPath(appDataPath)
+  const installed = await listInstalledModels(appDataPath)
+  if ((selectedFilename && !installed.some((model) => model.path === selectedPath)) || (!selectedFilename && !(await modelExists(appDataPath)))) {
     showSetupWindow()
     return
   }
 
   registerHotkey()
-  debugLog('model', 'load requested')
-
   try {
-    await translator.load(getModelPath(appDataPath))
-    debugLog('model', 'load completed', { backend: translator.backend })
+    await translator.load(selectedPath)
     sendModelReady()
+    showMainWindow()
   } catch (error) {
     debugError('model', 'load failed', error)
     showSetupWindow(formatError(error, '模型載入失敗'))
@@ -223,14 +281,13 @@ async function initializeModel(): Promise<void> {
 function registerHotkey(): void {
   if (hotkeyRegistered) return
 
-  hotkeyRegistered = globalShortcut.register(HOTKEY, () => {
-    void handleHotkey()
-  })
+  const configuredHotkey = getIeltsWorkspaceStore().getSetting('shortcut') ?? DEFAULT_HOTKEY
+  hotkeyRegistered = tryRegisterHotkey(configuredHotkey)
 
   if (!hotkeyRegistered) {
     new Notification({
       title: 'Lexicon 快捷鍵無法使用',
-      body: `${HOTKEY} 已被其他程式使用，請關閉衝突程式後重新啟動 Lexicon。`
+      body: `${formatHotkey(configuredHotkey)} 已被其他程式使用，請關閉衝突程式後重新啟動 Lexicon。`
     }).show()
   }
 }
@@ -238,39 +295,35 @@ function registerHotkey(): void {
 async function handleHotkey(): Promise<void> {
   const popup = windows.get('popup')
   if (popup?.isVisible()) {
-    debugLog('popup', 'hotkey hid visible popup')
     popup.hide()
     return
   }
 
   const point = screen.getCursorScreenPoint()
-  const captureStartedAt = Date.now()
+  const requestId = ++popupOpenRequestId
   const text = await captureSelectedText()
-  debugLog('selection', 'capture completed', {
-    elapsedMs: Date.now() - captureStartedAt,
-    captured: text !== null,
-    textLength: text?.length ?? 0
-  })
+
+  const currentPopup = windows.get('popup')
+  if (requestId !== popupOpenRequestId) return
+  if (currentPopup?.isVisible()) return
   await openPopup({ text, source: text ? 'selection' : 'manual' }, point)
 }
 
 async function openPopup(payload: OpenPopupPayload, point: Electron.Point): Promise<void> {
-  debugLog('popup', 'open requested', { source: payload.source, textLength: payload.text?.length ?? 0 })
-  const popup = createWindow('popup')
+  const popupWindow = createWindow('popup')
   popupAnchorPoint = point
-  positionPopup(popup, point, POPUP_DEFAULT_HEIGHT)
-  popup.setAlwaysOnTop(true, 'floating')
+  positionPopup(popupWindow, point, POPUP_DEFAULT_HEIGHT)
+  popupWindow.setAlwaysOnTop(true, 'floating')
 
   const sendPayload = (): void => {
-    if (popup.isDestroyed()) return
-    debugLog('popup', 'open payload sent', { source: payload.source, textLength: payload.text?.length ?? 0 })
-    popup.webContents.send('popup:open', payload)
-    popup.show()
-    popup.focus()
+    if (popupWindow.isDestroyed()) return
+    popupWindow.webContents.send('popup:open', payload)
+    popupWindow.show()
+    popupWindow.focus()
   }
 
-  if (popup.webContents.isLoading()) {
-    popup.webContents.once('did-finish-load', sendPayload)
+  if (popupWindow.webContents.isLoading()) {
+    popupWindow.webContents.once('did-finish-load', sendPayload)
   } else {
     sendPayload()
   }
@@ -315,35 +368,71 @@ function registerIpc(): void {
     console.log(`[Lexicon debug][renderer:${payload.scope}] ${payload.event}`, payload.details)
   })
 
-  ipcMain.handle('translation:translate', async (_event, text: unknown, sessionId: unknown) => {
+  ipcMain.handle('ielts-workspace:load', (_event, initialWorkspace: unknown) => {
+    const workspace = parseIeltsWorkspace(initialWorkspace)
+    return getIeltsWorkspaceStore().load(workspace)
+  })
+
+  ipcMain.handle('ielts-workspace:save-notes', (_event, notes: unknown) => {
+    if (typeof notes !== 'string') throw new Error('筆記格式不正確')
+    getIeltsWorkspaceStore().saveNotes(notes)
+  })
+
+  ipcMain.handle('ielts-workspace:save-directions', (_event, directions: unknown) => {
+    const workspace = parseIeltsWorkspace({ notes: '', directions })
+    getIeltsWorkspaceStore().saveDirections(workspace.directions)
+  })
+
+  ipcMain.handle('settings:get', (_event, key: unknown) => {
+    if (!isSettingKey(key)) throw new Error('設定項目不正確')
+    return getIeltsWorkspaceStore().getSetting(key)
+  })
+
+  ipcMain.handle('settings:set', (_event, key: unknown, value: unknown) => {
+    if (!isSettingKey(key) || !isSettingValue(key, value)) throw new Error('設定值不正確')
+    getIeltsWorkspaceStore().setSetting(key, value)
+  })
+
+  ipcMain.handle('settings:choose-backup-directory', async (event) => {
+    const options: Electron.OpenDialogOptions = {
+      title: '選擇備份資料夾',
+      properties: ['openDirectory', 'createDirectory']
+    }
+    const parentWindow = BrowserWindow.fromWebContents(event.sender)
+    const result = parentWindow
+      ? await dialog.showOpenDialog(parentWindow, options)
+      : await dialog.showOpenDialog(options)
+    return result.canceled ? undefined : result.filePaths[0]
+  })
+
+  ipcMain.handle('settings:set-shortcut', (_event, shortcut: unknown) => {
+    if (typeof shortcut !== 'string' || !shortcut) return { ok: false, message: '快捷鍵格式不正確' }
+    return setHotkey(shortcut)
+  })
+
+  ipcMain.handle('translation:translate', async (_event, text: unknown, sessionId: unknown, mode: unknown) => {
     const requestId = ++nextTranslationRequestId
     const startedAt = Date.now()
     const popupSessionId = typeof sessionId === 'number' ? sessionId : undefined
     activeTranslationRequestIds.add(requestId)
-    debugLog('translation', 'IPC received', {
-      requestId,
-      popupSessionId,
-      textLength: typeof text === 'string' ? text.length : undefined,
-      runtimeState: translator.state
-    })
-
     if (typeof text !== 'string') {
       activeTranslationRequestIds.delete(requestId)
-      debugLog('translation', 'IPC rejected: invalid text', { requestId, popupSessionId })
       return { ok: false, message: '翻譯內容格式不正確' }
     }
 
     try {
+      const requestMode: TranslationRequestMode = mode === 'lookup' ? 'lookup' : 'translation'
+      if (requestMode === 'lookup' && !isEnglishLookupQuery(text)) {
+        return { ok: false, message: '查詞模式只支援英文單字或短語' }
+      }
+      if (requestMode === 'lookup') {
+        const lookup = await translationJobs.submit({ id: `ipc-${requestId}`, text, direction: 'en-to-zh', priority: 'interactive' }, () => translator.lookup(text, `ipc-${requestId}`))
+        return { ok: true, kind: 'lookup' as const, lookup }
+      }
       const direction = detectTranslationDirection(text)
-      const translated = await translator.translate(text, direction, `ipc-${requestId}`)
-      debugLog('translation', 'IPC completed', {
-        requestId,
-        popupSessionId,
-        elapsedMs: Date.now() - startedAt,
-        resultLength: translated.length,
-        direction
-      })
-      return { ok: true, text: translated, direction }
+      const translated = await translationJobs.submit({ id: `ipc-${requestId}`, text, direction, priority: 'interactive' }, () => translator.translate(text, direction, `ipc-${requestId}`))
+      const translationRecordId = getLearningStore().recordTranslation(text, translated, direction)
+      return { ok: true, kind: 'translation' as const, text: translated, direction, translationRecordId }
     } catch (error) {
       debugError('translation', 'IPC failed', error, {
         requestId,
@@ -356,14 +445,12 @@ function registerIpc(): void {
     }
   })
 
-  ipcMain.handle('model:status', async (event) => {
-    const status = await getModelStatus(app.getPath('appData'))
-    debugLog('model', 'status requested', {
-      senderId: event.sender.id,
-      exists: status.exists,
-      runtimeState: translator.state,
-      backend: translator.backend
-    })
+  ipcMain.handle('model:status', async () => {
+    const selectedFilename = getIeltsWorkspaceStore().getSetting('model')
+    const selected = (await listInstalledModels(app.getPath('appData'))).find((model) => model.filename === selectedFilename)
+    const status = selected
+      ? { exists: true, filename: selected.filename, path: selected.path, size: selected.size, expectedSize: selected.size, state: 'ready' as const }
+      : await getModelStatus(app.getPath('appData'))
     return {
       ...status,
       backend: translator.backend,
@@ -372,10 +459,47 @@ function registerIpc(): void {
     }
   })
 
-  ipcMain.handle('model:download', async (event) => {
+  ipcMain.handle('model:list', () => listInstalledModels(app.getPath('appData')))
+
+  ipcMain.handle('model:search-huggingface', async (_event, query: unknown) => {
+    if (typeof query !== 'string' || query.trim().length < 2 || query.length > 100) throw new Error('請輸入 2 到 100 個字元的模型名稱')
+    return searchHuggingFaceModels(query)
+  })
+
+  ipcMain.handle('model:list-huggingface-files', async (_event, repository: unknown) => {
+    if (typeof repository !== 'string') throw new Error('模型名稱格式不正確')
+    return listHuggingFaceGgufFiles(repository)
+  })
+
+  ipcMain.handle('model:select', async (_event, filename: unknown) => {
+    if (typeof filename !== 'string' || filename !== basename(filename) || !filename.toLowerCase().endsWith('.gguf')) return { ok: false, message: '模型檔案格式不正確' }
+    const models = await listInstalledModels(app.getPath('appData'))
+    const selected = models.find((model) => model.filename === filename)
+    if (!selected) return { ok: false, message: '找不到指定的模型檔案' }
+    const previous = models.find((model) => model.filename === getIeltsWorkspaceStore().getSetting('model'))
     try {
-      const result = await downloadModel(app.getPath('appData'), event.sender)
+      await translator.load(selected.path)
+      getIeltsWorkspaceStore().setSetting('model', selected.filename)
+      sendModelReady()
+      return { ok: true }
+    } catch (error) {
+      if (previous) await translator.load(previous.path).catch(() => undefined)
+      return { ok: false, message: formatError(error, '模型重新載入失敗') }
+    }
+  })
+
+  ipcMain.handle('model:open-download-window', () => {
+    const window = createWindow('download-model')
+    window.show()
+    window.focus()
+  })
+
+  ipcMain.handle('model:download', async (event, request: unknown) => {
+    try {
+      if (!isModelDownloadRequest(request)) throw new Error('模型下載來源格式不正確')
+      const result = await downloadModel(app.getPath('appData'), request, event.sender)
       await translator.load(result.path)
+      getIeltsWorkspaceStore().setSetting('model', result.filename)
       registerHotkey()
       sendModelReady()
       return { ok: true, status: result }
@@ -386,10 +510,6 @@ function registerIpc(): void {
   })
 
   ipcMain.on('popup:close', () => {
-    debugLog('popup', 'close IPC received', {
-      runtimeState: translator.state,
-      activeTranslationRequestIds: [...activeTranslationRequestIds]
-    })
     const popup = windows.get('popup')
     if (popup && !popup.isDestroyed()) popup.hide()
   })
@@ -404,7 +524,6 @@ function registerIpc(): void {
     const clampedHeight = Math.round(
       Math.min(POPUP_MAX_HEIGHT, Math.max(POPUP_DEFAULT_HEIGHT, height))
     )
-    debugLog('popup', 'resize IPC received', { requestedHeight: height, clampedHeight })
     positionPopup(popup, popupAnchorPoint, clampedHeight)
   })
 
@@ -414,8 +533,187 @@ function registerIpc(): void {
   })
 }
 
+function getIeltsWorkspaceStore(): IeltsWorkspaceStore {
+  ieltsWorkspaceStore ??= new IeltsWorkspaceStore(app.getPath('userData'))
+  return ieltsWorkspaceStore
+}
+
+function getLearningStore(): LearningStore {
+  learningStore ??= new LearningStore(app.getPath('userData'))
+  return learningStore
+}
+
+type SettingKey = 'theme' | 'backup-on-quit' | 'backup-directory' | 'shortcut' | 'model'
+
+function isSettingKey(value: unknown): value is SettingKey {
+  return value === 'theme' || value === 'backup-on-quit' || value === 'backup-directory' || value === 'shortcut' || value === 'model'
+}
+
+function isSettingValue(key: SettingKey, value: unknown): value is string {
+  if (key === 'theme') return ['dark', 'light', 'system'].includes(value as string)
+  if (key === 'backup-on-quit') return value === 'true' || value === 'false'
+  return typeof value === 'string'
+}
+
+function isModelDownloadRequest(value: unknown): value is { kind: 'curated'; id: string } | { kind: 'huggingface'; repository: string; filename: string } | { kind: 'custom'; url: string } {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as { kind?: unknown; id?: unknown; repository?: unknown; filename?: unknown; url?: unknown }
+  return (candidate.kind === 'curated' && typeof candidate.id === 'string' && CURATED_MODELS.some((model) => model.id === candidate.id))
+    || (candidate.kind === 'huggingface' && typeof candidate.repository === 'string' && typeof candidate.filename === 'string')
+    || (candidate.kind === 'custom' && typeof candidate.url === 'string' && candidate.url.length <= 2_000)
+}
+
+function shouldBackupOnQuit(): boolean {
+  const store = getIeltsWorkspaceStore()
+  return store.getSetting('backup-on-quit') === 'true' && Boolean(store.getSetting('backup-directory'))
+}
+
+function setHotkey(shortcut: string): { ok: true } | { ok: false; message: string } {
+  const previousHotkey = registeredHotkey
+  if (hotkeyRegistered) globalShortcut.unregister(previousHotkey)
+  hotkeyRegistered = false
+
+  if (tryRegisterHotkey(shortcut)) {
+    getIeltsWorkspaceStore().setSetting('shortcut', shortcut)
+    return { ok: true }
+  }
+
+  hotkeyRegistered = tryRegisterHotkey(previousHotkey)
+  return { ok: false, message: '此快捷鍵無法使用，可能已被系統或其他程式佔用。' }
+}
+
+function tryRegisterHotkey(shortcut: string): boolean {
+  try {
+    const registered = globalShortcut.register(shortcut, () => {
+      void handleHotkey()
+    })
+    if (registered) registeredHotkey = shortcut
+    return registered
+  } catch {
+    return false
+  }
+}
+
+function formatHotkey(shortcut: string): string {
+  return shortcut
+    .replace('CommandOrControl', process.platform === 'darwin' ? '⌘' : 'Ctrl')
+    .replace('Control', 'Ctrl')
+    .replaceAll('+', ' + ')
+}
+
+async function backupBeforeQuit(): Promise<void> {
+  try {
+    const store = getIeltsWorkspaceStore()
+    const directory = store.getSetting('backup-directory')
+    if (directory) await store.backupTo(directory)
+  } catch (error) {
+    console.error('Lexicon backup failed before quit', error)
+  } finally {
+    shouldQuitAfterBackup = true
+    app.quit()
+  }
+}
+
+function parseIeltsWorkspace(value: unknown): IeltsWorkspace {
+  if (!value || typeof value !== 'object') throw new Error('IELTS 工作區資料格式不正確')
+  const candidate = value as Record<string, unknown>
+  if (typeof candidate.notes !== 'string' || !Array.isArray(candidate.directions)) {
+    throw new Error('IELTS 工作區資料格式不正確')
+  }
+
+  const directions = candidate.directions.map((direction): StudyDirection => {
+    if (!direction || typeof direction !== 'object') throw new Error('學習方向格式不正確')
+    const item = direction as Record<string, unknown>
+    if (
+      typeof item.id !== 'number'
+      || !Number.isSafeInteger(item.id)
+      || typeof item.title !== 'string'
+      || typeof item.focus !== 'string'
+      || !['planning', 'active', 'done'].includes(item.status as string)
+    ) {
+      throw new Error('學習方向格式不正確')
+    }
+    return { id: item.id, title: item.title, focus: item.focus, status: item.status as StudyDirection['status'] }
+  })
+
+  ipcMain.handle('news:search', async (_event, query: unknown) => {
+    if (typeof query !== 'string' || query.length > 200) throw new Error('新聞關鍵字格式不正確')
+    return searchNews(query)
+  })
+
+  ipcMain.handle('news:summarize', async (_event, article: unknown) => {
+    if (!article || typeof article !== 'object') throw new Error('新聞內容格式不正確')
+    const candidate = article as { title?: unknown; description?: unknown }
+    if (typeof candidate.title !== 'string' || typeof candidate.description !== 'string') throw new Error('新聞內容格式不正確')
+    return translator.summarizeNews(candidate.title.slice(0, 500), candidate.description.slice(0, 3_000))
+  })
+
+  ipcMain.handle('news:open', async (_event, url: unknown) => {
+    if (typeof url !== 'string' || !isSafeArticleUrl(url)) throw new Error('新聞連結格式不正確')
+    await shell.openExternal(url)
+  })
+
+  ipcMain.handle('learning:dashboard', () => getLearningStore().getDashboard())
+  ipcMain.handle('learning:create-from-record', async (_event, recordId: unknown) => {
+    if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')
+    const store = getLearningStore()
+    const record = store.getTranslationRecord(recordId as number)
+    const extraction = await translationJobs.submit(
+      { id: `learning-extract-${record.id}`, text: record.sourceText, direction: record.direction, priority: 'background' },
+      () => translator.extractLearningItem(record.sourceText, record.translatedText, record.direction, `learning-extract-${record.id}`)
+    )
+    return store.createItem(record.id, extraction)
+  })
+  ipcMain.handle('learning:create-from-source', async (_event, payload: unknown) => {
+    if (!payload || typeof payload !== 'object') throw new Error('學習來源格式不正確')
+    const source = payload as { sourceText?: unknown; translatedText?: unknown; direction?: unknown; sourceSurface?: unknown }
+    if (typeof source.sourceText !== 'string' || !source.sourceText.trim() || typeof source.translatedText !== 'string' || !source.translatedText.trim() || !['zh-to-en', 'en-to-zh'].includes(source.direction as string)) throw new Error('學習來源格式不正確')
+    const store = getLearningStore()
+    const sourceText = source.sourceText
+    const translatedText = source.translatedText
+    const direction = source.direction as 'zh-to-en' | 'en-to-zh'
+    const recordId = store.recordTranslation(sourceText, translatedText, direction, typeof source.sourceSurface === 'string' ? source.sourceSurface : 'learning')
+    const extraction = await translationJobs.submit(
+      { id: `learning-source-${recordId}`, text: sourceText, direction, priority: 'background' },
+      () => translator.extractLearningItem(sourceText, translatedText, direction, `learning-source-${recordId}`)
+    )
+    return store.createItem(recordId, extraction)
+  })
+  ipcMain.handle('learning:review', async (_event, payload: unknown) => {
+    if (!payload || typeof payload !== 'object') throw new Error('複習資料格式不正確')
+    const review = payload as { itemId?: unknown; exerciseType?: unknown; answer?: unknown }
+    if (!Number.isSafeInteger(review.itemId) || !['reverse_translation', 'cloze', 'rewrite'].includes(review.exerciseType as string) || typeof review.answer !== 'string') throw new Error('複習資料格式不正確')
+    const store = getLearningStore()
+    const item = store.getItem(review.itemId as number)
+    const extraction: LearningExtraction = { promptZh: item.promptZh, targetEn: item.targetEn, focusExpression: item.focusExpression, explanationZh: item.explanationZh, alternatives: item.alternatives, tags: item.tags }
+    const exerciseType = review.exerciseType as ReviewExerciseType
+    const answer = review.answer
+    const feedback = await translationJobs.submit(
+      { id: `learning-review-${item.id}`, text: answer, direction: 'zh-to-en', priority: 'interactive' },
+      () => translator.evaluateLearningAnswer(extraction, exerciseType, answer, `learning-review-${item.id}`)
+    )
+    return store.review(item.id, exerciseType, answer, feedback)
+  })
+  ipcMain.handle('learning:task', async (_event, payload: unknown) => {
+    if (!payload || typeof payload !== 'object') throw new Error('任務資料格式不正確')
+    const task = payload as { itemIds?: unknown; answer?: unknown }
+    if (!Array.isArray(task.itemIds) || task.itemIds.length < 2 || task.itemIds.length > 3 || !task.itemIds.every((id) => Number.isSafeInteger(id)) || typeof task.answer !== 'string' || !task.answer.trim()) throw new Error('任務資料格式不正確')
+    const store = getLearningStore()
+    const items = task.itemIds.map((id) => store.getItem(id as number))
+    const extractions = items.map((item) => ({ promptZh: item.promptZh, targetEn: item.targetEn, focusExpression: item.focusExpression, explanationZh: item.explanationZh, alternatives: item.alternatives, tags: item.tags }))
+    const answer = task.answer
+    return translationJobs.submit({ id: `learning-task-${Date.now()}`, text: answer, direction: 'zh-to-en', priority: 'interactive' }, () => translator.evaluateLearningTask(extractions, answer))
+  })
+  ipcMain.handle('learning:delete-item', (_event, itemId: unknown) => {
+    if (!Number.isSafeInteger(itemId) || (itemId as number) < 1) throw new Error('學習項目格式不正確')
+    getLearningStore().deleteItem(itemId as number)
+  })
+  ipcMain.handle('learning:clear-data', () => getLearningStore().clearLearningData())
+
+  return { notes: candidate.notes, directions }
+}
+
 function sendModelReady(): void {
-  debugLog('model', 'ready event sent', { windowCount: windows.size, backend: translator.backend })
   windows.forEach((window) => {
     if (!window.isDestroyed()) window.webContents.send('model:ready')
   })
