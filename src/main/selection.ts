@@ -3,8 +3,8 @@ import { promisify } from 'node:util'
 import { clipboard } from 'electron'
 
 const execFileAsync = promisify(execFile)
-// Ctrl+1 invokes the global-shortcut callback while the physical Ctrl key can still
-// be held. Waiting briefly avoids injecting Ctrl+C into the tail end of Ctrl+1,
+// Ctrl+Shift+Q invokes the global-shortcut callback while the physical Ctrl key can still
+// be held. Waiting briefly avoids injecting Ctrl+C into the tail end of Ctrl+Shift+Q,
 // which Windows applications such as VS Code can ignore.
 const HOTKEY_RELEASE_DELAY_MS = 120
 const COPY_TIMEOUT_MS = 1_000

@@ -22,7 +22,7 @@ import { TranslationEngine } from './llm'
 import { detectTranslationDirection } from '../shared/translationDirection'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const HOTKEY = 'Ctrl+1'
+const HOTKEY = 'Ctrl+Shift+Q'
 const POPUP_WIDTH = 420
 const POPUP_DEFAULT_HEIGHT = 360
 const POPUP_MAX_HEIGHT = 720
@@ -131,7 +131,7 @@ function createWindow(page: PageName): BrowserWindow {
 
   if (isPopup) {
     // Keep the popup above the source window while it is active. Moving focus to
-    // another app (or the desktop) should put it away; Ctrl+1 can show it again.
+    // another app (or the desktop) should put it away; Ctrl+Shift+Q can show it again.
     window.setAlwaysOnTop(true, 'floating')
     window.on('focus', () => debugLog('popup', 'focus received'))
     window.on('blur', () => {
