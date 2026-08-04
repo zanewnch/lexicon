@@ -9,77 +9,10 @@ const execFileAsync = promisify(execFile)
 const HOTKEY_RELEASE_DELAY_MS = 120
 const COPY_TIMEOUT_MS = 1_000
 
-const SEND_CTRL_C_SCRIPT = `
-Add-Type -TypeDefinition @'
-using System;
-using System.Runtime.InteropServices;
-
-public static class LexiconNativeInput {
-    [StructLayout(LayoutKind.Sequential)]
-    private struct INPUT {
-        public uint type;
-        public InputUnion union;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    private struct InputUnion {
-        [FieldOffset(0)] public KEYBDINPUT keyboard;
-        [FieldOffset(0)] public MOUSEINPUT mouse;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct KEYBDINPUT {
-        public ushort virtualKey;
-        public ushort scanCode;
-        public uint flags;
-        public uint time;
-        public IntPtr extraInfo;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct MOUSEINPUT {
-        public int dx;
-        public int dy;
-        public uint mouseData;
-        public uint flags;
-        public uint time;
-        public IntPtr extraInfo;
-    }
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern uint SendInput(uint count, INPUT[] inputs, int size);
-
-    public static void SendCtrlC() {
-        var inputs = new INPUT[] {
-            CreateKey(0x11, 0),
-            CreateKey(0x43, 0),
-            CreateKey(0x43, 2),
-            CreateKey(0x11, 2)
-        };
-
-        if (SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT))) != inputs.Length) {
-            throw new InvalidOperationException("Windows SendInput failed");
-        }
-    }
-
-    private static INPUT CreateKey(ushort virtualKey, uint flags) {
-        return new INPUT {
-            type = 1,
-            union = new InputUnion {
-                keyboard = new KEYBDINPUT {
-                    virtualKey = virtualKey,
-                    scanCode = 0,
-                    flags = flags,
-                    time = 0,
-                    extraInfo = IntPtr.Zero
-                }
-            }
-        };
-    }
-}
-'@
-[LexiconNativeInput]::SendCtrlC()
-`
+// Avoid compiling a C# type on every hotkey press. The Windows Script Host
+// automation object is already present on supported Windows installations and
+// can send the same Ctrl+C gesture without that per-request compilation cost.
+const SEND_CTRL_C_SCRIPT = "$shell = New-Object -ComObject WScript.Shell; [void]$shell.SendKeys('^c')"
 
 function encodePowerShellCommand(command: string): string {
   return Buffer.from(command, 'utf16le').toString('base64')

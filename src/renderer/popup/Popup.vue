@@ -10,11 +10,16 @@ const source = ref('')
 const sourceInput = ref<HTMLTextAreaElement | null>(null)
 const result = ref('')
 const lookup = ref<LookupResult | null>(null)
+const translationRecordId = ref<number | null>(null)
+const savingLearning = ref(false)
+const learned = ref(false)
 const status = ref('')
 const busy = ref(false)
 const sessionId = ref(0)
+const selectionPending = ref(false)
 const labels = computed(() => getDirectionLabels(detectTranslationDirection(source.value)))
 let unsubscribe: (() => void) | undefined
+let unsubscribeSelection: (() => void) | undefined
 
 async function translate(): Promise<void> {
   const id = sessionId.value
@@ -28,6 +33,8 @@ async function translate(): Promise<void> {
   busy.value = true
   result.value = ''
   lookup.value = null
+  translationRecordId.value = null
+  learned.value = false
   status.value = lookupMode ? 'Gemma 4 查詞中…' : 'Gemma 4 翻譯中…'
 
   try {
@@ -43,6 +50,7 @@ async function translate(): Promise<void> {
       window.api.resizePopup(600)
     } else {
       result.value = response.text
+      translationRecordId.value = response.translationRecordId
       window.api.resizePopup(540)
     }
     status.value = ''
@@ -59,6 +67,36 @@ async function copy(): Promise<void> {
     : result.value
   await navigator.clipboard.writeText(text)
   status.value = lookup.value ? '已複製查詞結果' : '已複製翻譯結果'
+}
+
+async function learnThis(): Promise<void> {
+  if (!translationRecordId.value || savingLearning.value || learned.value) return
+  savingLearning.value = true
+  status.value = '正在建立學習項目…'
+  try {
+    await window.api.createLearningFromRecord(translationRecordId.value)
+    learned.value = true
+    status.value = '已加入今日學習。'
+  } catch (error) {
+    status.value = error instanceof Error ? error.message : '建立學習項目失敗'
+  } finally {
+    savingLearning.value = false
+  }
+}
+
+async function learnLookupExample(): Promise<void> {
+  if (!lookup.value || savingLearning.value || learned.value) return
+  savingLearning.value = true
+  status.value = '正在建立例句學習項目…'
+  try {
+    await window.api.createLearningFromSource(lookup.value.example, lookup.value.exampleTranslation, 'en-to-zh', 'lookup')
+    learned.value = true
+    status.value = '例句已加入今日學習。'
+  } catch (error) {
+    status.value = error instanceof Error ? error.message : '建立例句學習項目失敗'
+  } finally {
+    savingLearning.value = false
+  }
 }
 
 function close(): void { window.api.closePopup() }
@@ -83,14 +121,29 @@ function closeWhenBlurred(): void {
 }
 
 onMounted(() => {
-  unsubscribe = window.api.onOpenPopup(({ text, source: origin }) => {
+  unsubscribe = window.api.onOpenPopup(({ text, source: origin, selectionPending: waitingForSelection }) => {
     sessionId.value += 1
     source.value = text ?? ''
+    selectionPending.value = Boolean(waitingForSelection)
     result.value = ''
     lookup.value = null
-    status.value = origin === 'selection' ? '已取得選取文字，查詢中…' : ''
+    translationRecordId.value = null
+    learned.value = false
+    savingLearning.value = false
+    status.value = origin === 'selection' ? (text ? '已取得選取文字，準備翻譯…' : '正在取得選取文字…') : ''
     window.api.resizePopup(304)
     if (text) void translate()
+  })
+  unsubscribeSelection = window.api.onPopupSelectionResult(({ text }) => {
+    if (!selectionPending.value) return
+    selectionPending.value = false
+    if (text) {
+      source.value = text
+      void translate()
+      return
+    }
+    status.value = '沒有取得選取文字，請直接輸入。'
+    sourceInput.value?.focus()
   })
   window.addEventListener('blur', closeWhenBlurred)
   document.addEventListener('keydown', escape)
@@ -99,6 +152,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   unsubscribe?.()
+  unsubscribeSelection?.()
   window.removeEventListener('blur', closeWhenBlurred)
   document.removeEventListener('keydown', escape)
   document.removeEventListener('keydown', focusSourceOnEnter)
@@ -117,7 +171,7 @@ onUnmounted(() => {
 
     <q-form class="popup-form" @submit="translate">
       <label class="popup-field-label" for="translation-source">要翻譯的{{ labels.sourceLanguage }}</label>
-      <textarea id="translation-source" ref="sourceInput" v-model="source" class="popup-source" :placeholder="labels.placeholder" :disabled="busy" @keydown.enter.exact.prevent="translate" />
+      <textarea id="translation-source" ref="sourceInput" v-model="source" class="popup-source" :placeholder="labels.placeholder" :disabled="busy" @input="selectionPending = false" @keydown.enter.exact.prevent="translate" />
       <div class="popup-actions">
         <span class="popup-shortcut"><kbd>Enter</kbd> 翻譯 <span aria-hidden="true">·</span> <kbd>Shift + Enter</kbd> 換行</span>
         <q-btn class="popup-submit" unelevated no-caps color="primary" :loading="busy" label="翻譯" type="submit" />
@@ -132,7 +186,10 @@ onUnmounted(() => {
           <div class="text-h4 lookup-term">{{ lookup.term }}</div>
           <div class="lookup-ipa">{{ lookup.ipa }}</div>
         </div>
-        <q-btn flat dense color="primary" label="複製" @click="copy" />
+        <div class="q-gutter-xs">
+          <q-btn flat dense color="primary" label="複製" @click="copy" />
+          <q-btn flat dense color="primary" :loading="savingLearning" :disable="learned" :label="learned ? '已加入學習' : '學例句'" @click="learnLookupExample" />
+        </div>
       </q-card-section>
       <q-card-section class="lookup-meaning">{{ lookup.meaning }}</q-card-section>
       <q-separator />
@@ -144,9 +201,12 @@ onUnmounted(() => {
     </q-card>
 
     <q-card v-else-if="result" flat class="lexicon-card q-mt-md">
-      <q-card-section class="row justify-between">
+      <q-card-section class="row justify-between items-center">
         <q-badge color="positive" :label="labels.targetLanguage" />
-        <q-btn flat dense label="複製" color="primary" @click="copy" />
+        <div class="q-gutter-xs">
+          <q-btn flat dense label="複製" color="primary" @click="copy" />
+          <q-btn flat dense color="primary" :loading="savingLearning" :disable="learned" :label="learned ? '已加入學習' : '學這句'" @click="learnThis" />
+        </div>
       </q-card-section>
       <q-card-section class="lexicon-result">{{ result }}</q-card-section>
     </q-card>

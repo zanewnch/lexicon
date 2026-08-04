@@ -7,6 +7,7 @@ import type { ModelBenchmark } from '../main/modelBenchmark'
 type OpenPopupPayload = {
   text: string | null
   source: 'selection' | 'manual'
+  selectionPending?: boolean
 }
 
 type TranslationResult =
@@ -65,6 +66,7 @@ contextBridge.exposeInMainWorld('api', {
   debugLog: (scope: string, event: string, details: Record<string, unknown>): void =>
     ipcRenderer.send('debug:log', { scope, event, details }),
   onOpenPopup: (callback: (payload: OpenPopupPayload) => void) => subscribe('popup:open', callback),
+  onPopupSelectionResult: (callback: (payload: { text: string | null }) => void) => subscribe('popup:selection-result', callback),
   translate: (text: string, sessionId?: number, mode?: TranslationRequestMode): Promise<TranslationResult> =>
     ipcRenderer.invoke('translation:translate', text, sessionId, mode),
   closePopup: (): void => ipcRenderer.send('popup:close'),
@@ -96,6 +98,7 @@ contextBridge.exposeInMainWorld('api', {
   generateIeltsWriting: (mode: 'outline' | 'feedback' | 'sample', taskType: 'task-1' | 'task-2', prompt: string, draft: string): Promise<string> =>
     ipcRenderer.invoke('ielts-writing:generate', { mode, taskType, prompt, draft }),
   listTranslationHistory: (): Promise<TranslationHistoryRecord[]> => ipcRenderer.invoke('history:list'),
+  deleteTranslationHistoryRecord: (recordId: number): Promise<void> => ipcRenderer.invoke('history:delete', recordId),
   loadLearningDashboard: (): Promise<LearningDashboard> => ipcRenderer.invoke('learning:dashboard'),
   createLearningFromRecord: (recordId: number): Promise<LearningItem> => ipcRenderer.invoke('learning:create-from-record', recordId),
   createLearningFromSource: (sourceText: string, translatedText: string, direction: 'zh-to-en' | 'en-to-zh', sourceSurface: string): Promise<LearningItem> =>

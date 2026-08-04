@@ -26,6 +26,34 @@ describe('LearningStore', () => {
     store.close()
   })
 
+  it('returns the existing item when the same translation is saved again', () => {
+    const store = createStore()
+    const recordId = store.recordTranslation('請更新進度', 'Could you update me on the progress?', 'zh-to-en')
+    const extraction = {
+      promptZh: '請更新進度', targetEn: 'Could you update me on the progress?', focusExpression: 'update me on',
+      explanationZh: '用來請對方更新某件事的進度。', alternatives: [], tags: ['工作']
+    }
+    const first = store.createItem(recordId, extraction)
+    const duplicate = store.createItem(recordId, extraction)
+    const dashboard = store.getDashboard()
+    expect(duplicate.id).toBe(first.id)
+    expect(dashboard.counts.new).toBe(1)
+    expect(dashboard.gamification.profile.totalXp).toBe(5)
+    store.close()
+  })
+
+  it('forgets a translation together with its learning item and review history', () => {
+    const store = createStore()
+    const recordId = store.recordTranslation('請更新進度', 'Could you update me on the progress?', 'zh-to-en')
+    const item = store.createItem(recordId, { promptZh: '請更新進度', targetEn: 'Could you update me on the progress?', focusExpression: 'update me on', explanationZh: '', alternatives: [], tags: ['工作'] })
+    store.review(item.id, 'reverse_translation', item.targetEn, { result: 'good', communicativeSuccess: true, message: '很好。', correction: '', naturalAnswer: item.targetEn })
+    store.deleteTranslationRecord(recordId)
+    expect(store.listTranslationHistory()).toHaveLength(0)
+    expect(store.getDashboard().recent).toHaveLength(0)
+    expect(() => store.getItem(item.id)).toThrow('找不到')
+    store.close()
+  })
+
   it('schedules a reviewed item and changes its learning state', () => {
     const store = createStore()
     const recordId = store.recordTranslation('請更新進度', 'Could you update me on the progress?', 'zh-to-en')

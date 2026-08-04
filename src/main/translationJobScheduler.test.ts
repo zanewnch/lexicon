@@ -25,4 +25,14 @@ describe('TranslationJobScheduler', () => {
     await expect(cancelled).rejects.toThrow('已取消')
     release()
   })
+
+  it('drops queued background work for an immediate learner query', async () => {
+    const scheduler = new TranslationJobScheduler()
+    let release!: () => void
+    void scheduler.submit({ id: 'active', text: '', direction: 'en-to-zh', priority: 'interactive' }, async () => new Promise<void>((resolve) => { release = resolve }))
+    const queued = scheduler.submit({ id: 'transcript', text: '', direction: 'en-to-zh', priority: 'background' }, async () => 'transcript')
+    expect(scheduler.cancelQueuedBackground()).toBe(1)
+    await expect(queued).rejects.toThrow('讓位')
+    release()
+  })
 })

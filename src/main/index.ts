@@ -59,7 +59,7 @@ if (isDevelopment) {
 }
 
 type PageName = 'app' | 'popup' | 'popup-overlay' | 'settings' | 'setup' | 'download-model'
-type OpenPopupPayload = { text: string | null; source: 'selection' | 'manual' }
+type OpenPopupPayload = { text: string | null; source: 'selection' | 'manual'; selectionPending?: boolean }
 
 const windows = new Map<PageName, BrowserWindow>()
 const translator = new TranslationEngine()
@@ -305,15 +305,26 @@ async function handleHotkey(): Promise<void> {
 
   const point = screen.getCursorScreenPoint()
   const requestId = ++popupOpenRequestId
+  const openedAt = Date.now()
+  const cancelledBackground = translationJobs.cancelQueuedBackground()
+  debugLog('hotkey', 'opening popup before selection capture', { requestId, cancelledBackground })
+  // Keep the source app focused until Ctrl+C has copied its selection. The popup
+  // is visible immediately, but deliberately non-focused for this short phase.
+  await openPopup({ text: null, source: 'selection', selectionPending: true }, point, false)
+
   const text = await captureSelectedText()
+  const captureElapsedMs = Date.now() - openedAt
 
   const currentPopup = windows.get('popup')
   if (requestId !== popupOpenRequestId) return
-  if (currentPopup?.isVisible()) return
-  await openPopup({ text, source: text ? 'selection' : 'manual' }, point)
+  if (!currentPopup || currentPopup.isDestroyed() || !currentPopup.isVisible()) return
+  debugLog('hotkey', 'selection capture finished', { requestId, captureElapsedMs, hasText: Boolean(text), textLength: text?.length ?? 0 })
+  currentPopup.webContents.send('popup:selection-result', { text })
+  currentPopup.focus()
+  startPopupFocusCheck(currentPopup)
 }
 
-async function openPopup(payload: OpenPopupPayload, point: Electron.Point): Promise<void> {
+async function openPopup(payload: OpenPopupPayload, point: Electron.Point, focus = true): Promise<void> {
   const overlay = createPopupOverlay(point)
   const popupWindow = createWindow('popup')
   overlay.setAlwaysOnTop(true, 'normal')
@@ -325,9 +336,11 @@ async function openPopup(payload: OpenPopupPayload, point: Electron.Point): Prom
     if (popupWindow.isDestroyed()) return
     popupWindow.webContents.send('popup:open', payload)
     overlay.showInactive()
-    popupWindow.show()
-    popupWindow.focus()
-    startPopupFocusCheck(popupWindow)
+    if (focus) {
+      popupWindow.show()
+      popupWindow.focus()
+      startPopupFocusCheck(popupWindow)
+    } else popupWindow.showInactive()
   }
 
   if (popupWindow.webContents.isLoading()) {
@@ -457,17 +470,21 @@ function registerIpc(): void {
     }
 
     try {
+      const cancelledBackground = translationJobs.cancelQueuedBackground()
+      debugLog('translation', 'interactive request accepted', { requestId, popupSessionId, cancelledBackground, queue: translationJobs.pendingCounts })
       const requestMode: TranslationRequestMode = mode === 'lookup' ? 'lookup' : 'translation'
       if (requestMode === 'lookup' && !isEnglishLookupQuery(text)) {
         return { ok: false, message: '查詞模式只支援英文單字或短語' }
       }
       if (requestMode === 'lookup') {
         const lookup = await translationJobs.submit({ id: `ipc-${requestId}`, text, direction: 'en-to-zh', priority: 'interactive' }, () => translator.lookup(text, `ipc-${requestId}`))
+        debugLog('translation', 'interactive lookup completed', { requestId, elapsedMs: Date.now() - startedAt })
         return { ok: true, kind: 'lookup' as const, lookup }
       }
       const direction = detectTranslationDirection(text)
       const translated = await translationJobs.submit({ id: `ipc-${requestId}`, text, direction, priority: 'interactive' }, () => translator.translate(text, direction, `ipc-${requestId}`))
       const translationRecordId = getLearningStore().recordTranslation(text, translated, direction)
+      debugLog('translation', 'interactive translation completed', { requestId, elapsedMs: Date.now() - startedAt })
       return { ok: true, kind: 'translation' as const, text: translated, direction, translationRecordId }
     } catch (error) {
       debugError('translation', 'IPC failed', error, {
@@ -798,6 +815,10 @@ function parseIeltsWorkspace(value: unknown): IeltsWorkspace {
 
   ipcMain.handle('learning:dashboard', () => getLearningStore().getDashboard())
   ipcMain.handle('history:list', () => getLearningStore().listTranslationHistory())
+  ipcMain.handle('history:delete', (_event, recordId: unknown) => {
+    if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')
+    getLearningStore().deleteTranslationRecord(recordId as number)
+  })
   ipcMain.handle('learning:create-from-record', async (_event, recordId: unknown) => {
     if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')
     const store = getLearningStore()

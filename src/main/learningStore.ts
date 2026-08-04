@@ -54,6 +54,9 @@ export class LearningStore {
   }
 
   createItem(translationRecordId: number, extraction: LearningExtraction): LearningItem {
+    const existing = this.database.prepare('SELECT id FROM learning_items WHERE translation_record_id = ? AND archived_at IS NULL').get(translationRecordId) as { id: number } | undefined
+    if (existing) return this.getItem(existing.id)
+
     const createdAt = this.now()
     this.database.exec('BEGIN')
     try {
@@ -158,6 +161,17 @@ export class LearningStore {
   }
 
   deleteItem(id: number): void { this.database.prepare('UPDATE learning_items SET archived_at = ? WHERE id = ?').run(this.now(), id); this.unlockAchievements() }
+  deleteTranslationRecord(id: number): void {
+    this.database.exec('BEGIN')
+    try {
+      const record = this.database.prepare('SELECT id FROM translation_records WHERE id = ?').get(id) as { id: number } | undefined
+      if (!record) throw new Error('找不到這筆翻譯紀錄')
+      this.database.prepare('DELETE FROM review_events WHERE learning_item_id IN (SELECT id FROM learning_items WHERE translation_record_id = ?)').run(id)
+      this.database.prepare('DELETE FROM learning_items WHERE translation_record_id = ?').run(id)
+      this.database.prepare('DELETE FROM translation_records WHERE id = ?').run(id)
+      this.database.exec('COMMIT')
+    } catch (error) { this.database.exec('ROLLBACK'); throw error }
+  }
   clearLearningData(): void { this.database.exec('DELETE FROM xp_events; DELETE FROM daily_journey_tasks; DELETE FROM daily_journeys; DELETE FROM achievements; DELETE FROM review_events; DELETE FROM learning_items; DELETE FROM translation_records; DELETE FROM learner_patterns; DELETE FROM learner_profile;'); this.ensureProfile() }
   close(): void { this.database.close() }
 

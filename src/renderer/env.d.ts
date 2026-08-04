@@ -10,6 +10,7 @@ declare module '*.vue' {
 type OpenPopupPayload = {
   text: string | null
   source: 'selection' | 'manual'
+  selectionPending?: boolean
 }
 
 type TranslationResult =
@@ -97,6 +98,7 @@ interface Window {
     platform: string
     debugLog(scope: string, event: string, details: Record<string, unknown>): void
     onOpenPopup(callback: (payload: OpenPopupPayload) => void): () => void
+    onPopupSelectionResult(callback: (payload: { text: string | null }) => void): () => void
     translate(text: string, sessionId?: number, mode?: TranslationRequestMode): Promise<TranslationResult>
     closePopup(): void
     resizePopup(height: number): void
@@ -122,6 +124,7 @@ interface Window {
     saveIeltsDirections(directions: StudyDirection[]): Promise<void>
     generateIeltsWriting(mode: 'outline' | 'feedback' | 'sample', taskType: 'task-1' | 'task-2', prompt: string, draft: string): Promise<string>
     listTranslationHistory(): Promise<TranslationHistoryRecord[]>
+    deleteTranslationHistoryRecord(recordId: number): Promise<void>
     loadLearningDashboard(): Promise<LearningDashboard>
     createLearningFromRecord(recordId: number): Promise<LearningItem>
     createLearningFromSource(sourceText: string, translatedText: string, direction: 'zh-to-en' | 'en-to-zh', sourceSurface: string): Promise<LearningItem>

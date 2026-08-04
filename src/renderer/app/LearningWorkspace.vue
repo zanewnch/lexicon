@@ -21,8 +21,20 @@ const reviewOperationId = ref('')
 const taskOperationId = ref('')
 
 const items = computed(() => filter.value === 'all' ? dashboard.value.recent : dashboard.value.recent.filter((item) => item.state === filter.value))
-const taskItems = computed(() => dashboard.value.recent.slice(0, 3))
-const taskUnlocked = computed(() => dashboard.value.gamification.abilityMap.some((node) => node.stage === 'flexible' || node.stage === 'mastered'))
+const abilityStageByItemId = computed(() => new Map(dashboard.value.gamification.abilityMap.map((node) => [node.itemId, node.stage])))
+const taskItems = computed(() => dashboard.value.recent.filter((item) => {
+  const stage = abilityStageByItemId.value.get(item.id)
+  return stage === 'flexible' || stage === 'mastered'
+}).slice(0, 3))
+const taskUnlocked = computed(() => taskItems.value.length >= 2)
+const taskPrompt = computed(() => {
+  const tags = new Set(taskItems.value.flatMap((item) => item.tags))
+  if (tags.has('工作')) return '請用下列表達寫一則自然、禮貌的英文工作訊息。'
+  if (tags.has('IELTS')) return '請用下列表達回答一題 IELTS Speaking 或 Writing 情境。'
+  if (tags.has('旅遊')) return '請用下列表達寫一段你在旅行時真的會說或傳出的英文。'
+  if (tags.has('聊天')) return '請用下列表達寫一段自然的英文聊天訊息。'
+  return '請用下列表達寫一段你自己真的可能使用的英文。'
+})
 const exerciseLabel = computed(() => activeCard.value?.exerciseType === 'cloze' ? '補上英文核心表達' : activeCard.value?.exerciseType === 'rewrite' ? '換個情境重新表達' : '請用自然英文說出來')
 const question = computed(() => {
   if (!activeCard.value) return ''
@@ -76,7 +88,7 @@ async function updatePreferences(key: 'streakEnabled' | 'reducedMotion', value: 
 
   <q-card v-else flat class="lexicon-card q-mt-lg"><q-card-section><div class="row justify-between items-center"><div><div class="text-h6">現在要練什麼？</div><div class="text-caption text-grey-5 q-mt-xs">每題都從你的翻譯紀錄而來。</div></div><q-btn v-if="dashboard.due.length" color="primary" label="開始今天的練習" @click="start(dashboard.due[0])" /></div><div v-if="!dashboard.due.length" class="q-mt-lg text-grey-5">目前沒有到期項目。先在翻譯結果按「學這句」，明天就會有第一題。</div></q-card-section></q-card>
 
-  <q-card v-if="taskItems.length >= 2" flat class="lexicon-card q-mt-md"><q-card-section><div class="row justify-between items-center"><div><div class="text-h6">情境任務</div><div class="text-caption text-grey-5">把多個已學表達寫進一則真的能用的訊息。</div></div><q-btn v-if="taskUnlocked" flat color="primary" :label="taskOpen ? '收起' : '開始任務'" @click="taskOpen = !taskOpen" /><q-badge v-else outline color="grey-6" label="完成第一個「能變化」後解鎖" /></div><div v-if="taskOpen && taskUnlocked" class="q-mt-md"><div>請寫一則英文工作訊息，詢問進度並保持禮貌。嘗試使用：</div><div class="q-gutter-xs q-mt-sm"><q-badge v-for="item in taskItems" :key="item.id" outline color="primary" :label="item.focusExpression" /></div><q-input v-model="taskAnswer" class="q-mt-md" outlined type="textarea" autogrow label="你的英文訊息" :disable="busy || Boolean(taskFeedback)" /><q-btn v-if="!taskFeedback" class="q-mt-sm" color="primary" :disable="!taskAnswer.trim()" :loading="busy" label="取得任務回饋" @click="submitTask" /><q-banner v-else rounded class="q-mt-md bg-blue-1 text-dark"><div class="text-subtitle2">{{ taskFeedback.message }}</div><div v-if="taskFeedback.correction" class="q-mt-sm">{{ taskFeedback.correction }}</div><div class="q-mt-sm">{{ taskFeedback.naturalAnswer }}</div><div v-if="taskFeedback.rewards?.xp" class="q-mt-sm text-primary">+{{ taskFeedback.rewards.xp }} XP</div></q-banner></div></q-card-section></q-card>
+  <q-card v-if="taskItems.length >= 2" flat class="lexicon-card q-mt-md"><q-card-section><div class="row justify-between items-center"><div><div class="text-h6">情境任務</div><div class="text-caption text-grey-5">把已能變化的表達放進一段真的能用的英文。</div></div><q-btn v-if="taskUnlocked" flat color="primary" :label="taskOpen ? '收起' : '開始任務'" @click="taskOpen = !taskOpen" /></div><div v-if="taskOpen && taskUnlocked" class="q-mt-md"><div>{{ taskPrompt }} 嘗試使用：</div><div class="q-gutter-xs q-mt-sm"><q-badge v-for="item in taskItems" :key="item.id" outline color="primary" :label="item.focusExpression" /></div><q-input v-model="taskAnswer" class="q-mt-md" outlined type="textarea" autogrow label="你的英文訊息" :disable="busy || Boolean(taskFeedback)" /><q-btn v-if="!taskFeedback" class="q-mt-sm" color="primary" :disable="!taskAnswer.trim()" :loading="busy" label="取得任務回饋" @click="submitTask" /><q-banner v-else rounded class="q-mt-md bg-blue-1 text-dark"><div class="text-subtitle2">{{ taskFeedback.message }}</div><div v-if="taskFeedback.correction" class="q-mt-sm">{{ taskFeedback.correction }}</div><div class="q-mt-sm">{{ taskFeedback.naturalAnswer }}</div><div v-if="taskFeedback.rewards?.xp" class="q-mt-sm text-primary">+{{ taskFeedback.rewards.xp }} XP</div></q-banner></div></q-card-section></q-card>
 
   <q-card v-if="dashboard.gamification.abilityMap.length" flat class="lexicon-card q-mt-lg"><q-card-section><div class="text-overline text-primary">能力地圖</div><div class="text-h6">你正在練成的真實表達</div><div class="q-gutter-sm q-mt-md"><q-chip v-for="node in dashboard.gamification.abilityMap" :key="node.itemId" square :color="stageColor(node.stage)" text-color="white" :label="`${node.expression} · ${stageLabel(node.stage)}`" /></div></q-card-section></q-card>
   <q-card flat class="lexicon-card q-mt-md"><q-card-section><div class="row justify-between items-center"><div><div class="text-overline text-primary">里程碑</div><div class="text-h6">{{ dashboard.gamification.achievements.filter((achievement) => achievement.unlockedAt).length }} / {{ dashboard.gamification.achievements.length }} 枚徽章</div></div><q-btn flat dense :label="dashboard.gamification.profile.streakEnabled ? '連續學習：開啟' : '連續學習：關閉'" @click="updatePreferences('streakEnabled', !dashboard.gamification.profile.streakEnabled)" /></div><div class="q-gutter-sm q-mt-md"><q-chip v-for="achievement in dashboard.gamification.achievements" :key="achievement.code" square :outline="!achievement.unlockedAt" :color="achievement.unlockedAt ? 'amber-8' : 'grey-6'" :text-color="achievement.unlockedAt ? 'white' : undefined" :label="achievement.title"><q-tooltip>{{ achievement.description }}</q-tooltip></q-chip></div><q-toggle class="q-mt-md" :model-value="dashboard.gamification.profile.reducedMotion" label="減少進度動畫" @update:model-value="updatePreferences('reducedMotion', $event)" /></q-card-section></q-card>

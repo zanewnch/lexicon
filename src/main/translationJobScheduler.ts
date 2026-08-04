@@ -37,6 +37,17 @@ export class TranslationJobScheduler {
     groups.forEach((group) => this.cancelGroup(group))
   }
 
+  /** Drop queued non-user work when the learner asks for an immediate result. */
+  cancelQueuedBackground(reason = '背景翻譯已讓位給目前查詢'): number {
+    const pending = this.background.splice(0)
+    pending.forEach((job) => job.reject(new Error(reason)))
+    return pending.length
+  }
+
+  get pendingCounts(): { interactive: number; background: number; running: boolean } {
+    return { interactive: this.interactive.length, background: this.background.length, running: this.running }
+  }
+
   private removeCancelled(queue: PendingJob[], group: string): void {
     for (let index = queue.length - 1; index >= 0; index -= 1) {
       if (queue[index].group === group) queue.splice(index, 1)[0].reject(new Error('翻譯工作已取消'))
