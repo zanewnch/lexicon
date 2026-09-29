@@ -19,6 +19,8 @@ const progressLabel = ref('選擇模型後開始下載')
 const message = ref('')
 const options = [
   { label: 'Gemma 4 E2B — 建議使用 · 較快 · 約 2.29 GB', value: 'gemma-4-e2b' },
+  { label: 'Hy-MT2 1.8B Q4 — 翻譯專用候選 · 約 1.13 GB', value: 'hy-mt2-1.8b-q4' },
+  { label: 'Qwen 3.5 4B Q4 — 通用多語言模型 · 約 2.52 GB', value: 'qwen-3.5-4b-q4' },
   { label: 'Llama 3.2 3B — 替代選擇 · 約 2 GB', value: 'llama-3.2-3b' },
   { label: 'Llama 3.1 8B — 較佳品質 · 建議 8 GB 以上記憶體 · 約 5 GB', value: 'llama-3.1-8b' }
 ]

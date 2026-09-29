@@ -15,6 +15,7 @@ export type CuratedModel = {
 export const CURATED_MODELS: readonly CuratedModel[] = [
   { id: 'gemma-4-e2b', label: 'Gemma 4 E2B', description: '建議使用 · 較快 · 約 2.29 GB', repository: 'unsloth/gemma-4-E2B-it-GGUF', filename: 'gemma-4-E2B-it-UD-IQ2_M.gguf' },
   { id: 'hy-mt2-1.8b-q4', label: 'Hy-MT2 1.8B Q4', description: '翻譯專用候選 · 約 1.13 GB · 查字與學習建議使用 Gemma 4', repository: 'tencent/Hy-MT2-1.8B-GGUF', filename: 'Hy-MT2-1.8B-Q4_K_M.gguf' },
+  { id: 'qwen-3.5-4b-q4', label: 'Qwen 3.5 4B Q4', description: '通用多語言模型 · 約 2.52 GB', repository: 'TirGun/Qwen3.5-4B-GGUF', filename: 'qwen3.5-4b-Q4_K_M.gguf' },
   { id: 'llama-3.2-3b', label: 'Llama 3.2 3B', description: '替代選擇 · 約 2 GB', repository: 'bartowski/Llama-3.2-3B-Instruct-GGUF', filename: 'Llama-3.2-3B-Instruct-Q4_K_M.gguf' },
   { id: 'llama-3.1-8b', label: 'Llama 3.1 8B', description: '較佳品質 · 建議 8 GB 以上記憶體 · 約 5 GB', repository: 'bartowski/Meta-Llama-3.1-8B-Instruct-GGUF', filename: 'Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf' }
 ]
