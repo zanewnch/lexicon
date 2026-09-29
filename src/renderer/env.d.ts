@@ -70,6 +70,13 @@ type YouTubeTranscript = {
   segments: YouTubeTranscriptSegment[]
 }
 
+type YouTubeControl =
+  | { type: 'youtube:control'; action: 'seek'; videoId: string; positionMs: number }
+  | { type: 'youtube:control'; action: 'playback'; videoId: string; value: 'play' | 'pause' | 'toggle' }
+  | { type: 'youtube:control'; action: 'rate'; videoId: string; value: number }
+  | { type: 'youtube:control'; action: 'caption-mode'; videoId: string; value: 'both' | 'english' | 'translation' | 'hidden' }
+  | { type: 'youtube:control'; action: 'repeat'; videoId: string; startMs: number; endMs: number }
+
 type StudyDirection = {
   id: number
   title: string
@@ -95,6 +102,9 @@ type NewsArticle = { id: string; title: string; url: string; source: string; pub
 
 interface Window {
   api: {
+    investmentStatus(): Promise<{ state: 'starting' | 'ready' | 'error'; url?: string; message?: string }>
+    openInvestmentWindow(): Promise<{ state: 'starting' | 'ready' | 'error'; url?: string; message?: string }>
+    openInvestmentBrowser(): Promise<{ state: 'starting' | 'ready' | 'error'; url?: string; message?: string }>
     platform: string
     debugLog(scope: string, event: string, details: Record<string, unknown>): void
     onOpenPopup(callback: (payload: OpenPopupPayload) => void): () => void
@@ -117,6 +127,9 @@ interface Window {
     onYouTubeTranscriptOpen(callback: (transcript: YouTubeTranscript) => void): () => void
     onYouTubeTranscriptSegment(callback: (segment: { videoId: string; segmentId: string; translation: string }) => void): () => void
     onYouTubeTranscriptProgress(callback: (progress: { videoId: string; completed: number; total: number }) => void): () => void
+    onYouTubeTranscriptError(callback: (error: { videoId: string; message: string }) => void): () => void
+    onYouTubePlayerPosition(callback: (position: { videoId: string; positionMs: number; playing: boolean }) => void): () => void
+    controlYouTube(control: YouTubeControl): Promise<{ ok: true } | { ok: false; message: string }>
     onSetupError(callback: (message: string) => void): () => void
     closeSetup(): void
     loadIeltsWorkspace(initialWorkspace: IeltsWorkspace): Promise<IeltsWorkspace>

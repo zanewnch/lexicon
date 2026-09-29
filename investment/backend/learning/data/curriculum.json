@@ -1,0 +1,135 @@
+{
+  "version": "1.0.0",
+  "title": "策略實作導向的台股學習地圖",
+  "description": "先做練習，再補足解決問題所需的知識。每週建議投入 3–5 小時，週次不設截止日。",
+  "estimatedWeeks": 10,
+  "weeklyHours": "3–5",
+  "stages": [
+    { "id": "rules-data", "title": "規則與資料", "nodeIds": ["w01-rule", "w02-data", "w03-timing"] },
+    { "id": "backtest", "title": "回測", "nodeIds": ["w04-first-backtest", "w05-evaluation"] },
+    { "id": "robustness", "title": "穩健性", "nodeIds": ["w06-parameters", "w07-symbols", "w08-holdout"] },
+    { "id": "conclusion", "title": "研究結論", "nodeIds": ["w09-failures", "w10-report"] }
+  ],
+  "nodes": [
+    {
+      "id": "w01-rule", "week": 1, "stageId": "rules-data", "prerequisiteIds": [], "title": "把交易想法寫成規則",
+      "concept": "從一個可反駁的假說開始：收盤價站上 20 日均線後，未來的表現是否值得承擔風險？「站上」要定義為今天才由下往上穿越，還是只要高於均線；賣出、同時持有的部位及沒有訊號時的處置也要寫清楚。先定義規則再看結果，才能避免因為看過答案而改題目。",
+      "resources": [
+        { "title": "Awesome AI4Finance：技術分析與回測資源索引", "url": "https://github.com/AI4Finance-Foundation/Awesome_AI4Finance" },
+        { "title": "Backtrader：策略快速入門", "url": "https://www.backtrader.com/docu/quickstart/quickstart/" }
+      ],
+      "steps": ["用一句話寫出你想驗證的市場假說。", "定義 20 日均線、買入、賣出、持倉及不交易的規則。", "寫下兩種可能使策略失效的市場情境。"],
+      "deliverable": "一頁策略規格，包含進場、出場和失效情境。",
+      "example": "若今日收盤價由下往上穿越 20 日均線，隔一個交易日才考慮進場；跌破時退出。盤整頻繁穿越可能失效。",
+      "completionCriteria": ["規則能由另一個人對同一份資料重現。", "至少列出一個可觀察的失效情境。"]
+    },
+    {
+      "id": "w02-data", "week": 2, "stageId": "rules-data", "prerequisiteIds": ["w01-rule"], "title": "準備可信的歷史資料",
+      "concept": "回測的結果先受資料品質限制。檢查日期是否按交易日排列、價格和成交量是否缺漏、資料是否經過還原或調整，以及比較基準是否使用相容的價格口徑。除權息前後的價格跳動不能直接當作策略獲利或虧損；來源、下載時間和處理方式都應記錄。",
+      "resources": [
+        { "title": "FinMind：台股價格資料入門", "url": "https://finmind.github.io/en/quickstart/" },
+        { "title": "Awesome AI4Finance：資料來源索引", "url": "https://github.com/AI4Finance-Foundation/Awesome_AI4Finance#data-sources" }
+      ],
+      "steps": ["事先選定研究標的和比較基準，記錄選擇理由。", "下載價格資料，檢查日期、缺值、重複列和異常跳動。", "確認價格調整口徑，寫下尚未處理的資料限制。"],
+      "deliverable": "資料來源、區間、品質檢查及價格口徑紀錄。",
+      "example": "資料來源：FinMind；標的：事先選定的台股；基準：事先選定的 ETF；發現兩個缺值日期並查明是否為休市。",
+      "completionCriteria": ["記錄標的、基準、來源及資料區間。", "說明缺值、重複與除權息口徑如何檢查。"]
+    },
+    {
+      "id": "w03-timing", "week": 3, "stageId": "rules-data", "prerequisiteIds": ["w02-data"], "title": "確認訊號與成交時點",
+      "concept": "若規則用到今日收盤價，訊號要在收盤後才完整；不能同時假設已用今日收盤價買到。這就是常見的偷看未來資料問題。練習把每筆訊號、下單時點、假定成交價與資料可得時點排在一起，找出不可能執行的假設。",
+      "resources": [
+        { "title": "Backtrader：訂單執行邏輯", "url": "https://www.backtrader.com/docu/order-creation-execution/order-creation-execution/" },
+        { "title": "Shioaji：官方入門文件", "url": "https://sinotrade.github.io/zh/quickstart/" }
+      ],
+      "steps": ["找出至少十筆穿越均線的歷史訊號。", "逐筆寫出訊號所需資料何時才完整。", "為每筆指定之後可執行的交易日和價格假設。"],
+      "deliverable": "十筆訊號、資料可得時點及預定成交時點的對照。",
+      "example": "週一收盤形成訊號；週一收盤後才知道；週二開盤按假定價格進場。",
+      "completionCriteria": ["至少十筆訊號有日期與交易時點。", "沒有使用訊號形成前無法取得的資料。"]
+    },
+    {
+      "id": "w04-first-backtest", "week": 4, "stageId": "backtest", "prerequisiteIds": ["w03-timing"], "title": "做第一版成本敏感度回測",
+      "concept": "從訊號走到績效，需要明確的部位、成交、退出和成本規則。先用固定且可修改的手續費、交易稅與滑價假設，分別看零成本和有成本結果；成本數字只是研究假設，要註明來源和日期。現有平台的五日訊號績效可拿來觀察訊號，不能當成完整策略回測。",
+      "resources": [
+        { "title": "Backtrader：佣金設定", "url": "https://www.backtrader.com/docu/commission-schemes/commission-schemes/" },
+        { "title": "VectorBT：投資組合與訊號文件", "url": "https://vectorbt.dev/api/portfolio/base/" }
+      ],
+      "steps": ["用外部研究工具或試算表按上週時點規則形成交易紀錄。", "固定並註明交易成本與滑價假設。", "比較零成本和有成本的結果，保存設定。"],
+      "deliverable": "回測設定、交易紀錄與成本前後比較。",
+      "example": "相同交易序列分別用零成本和自訂成本假設計算，記錄總報酬差距。",
+      "completionCriteria": ["每筆交易有進出日期與價格假設。", "列出成本項目並比較成本前後結果。"]
+    },
+    {
+      "id": "w05-evaluation", "week": 5, "stageId": "backtest", "prerequisiteIds": ["w04-first-backtest"], "title": "讀懂績效與比較基準",
+      "concept": "勝率高不一定賺錢，勝率低也可能靠較大的平均獲利抵銷虧損。績效需要連同累積報酬、最大回撤、交易次數及持有期間一起看；比較基準必須使用相同期間與資金假設。若標的有配息，也要說明策略和基準是否都計入。",
+      "resources": [
+        { "title": "VectorBT：投資組合統計", "url": "https://vectorbt.dev/api/portfolio/base/" },
+        { "title": "Awesome AI4Finance：風險與投資組合資源", "url": "https://github.com/AI4Finance-Foundation/Awesome_AI4Finance#portfolio-management--risk" }
+      ],
+      "steps": ["計算累積報酬、最大回撤、勝率和交易次數。", "用同期間、同資金假設計算買進持有基準。", "寫出至少兩項勝率沒有呈現的風險。"],
+      "deliverable": "一頁績效解讀，含策略與買進持有比較。",
+      "example": "策略勝率較高，但成本後報酬低於買進持有，且交易次數多；因此不能僅憑勝率判定有效。",
+      "completionCriteria": ["報告至少四項指標與比較基準。", "清楚說明比較口徑和主要風險。"]
+    },
+    {
+      "id": "w06-parameters", "week": 6, "stageId": "robustness", "prerequisiteIds": ["w05-evaluation"], "title": "檢查參數是否過度配適",
+      "concept": "單一參數表現最好，可能只是恰好符合那段歷史。事先選少量相近均線長度與不同測試期間，觀察結果是否持續具有相同方向，而不是搜尋大量組合後只公布冠軍。所有嘗試都應保留，避免把試錯過程藏起來。",
+      "resources": [
+        { "title": "VectorBT：官方入門與參數實驗", "url": "https://vectorbt.dev/" },
+        { "title": "Awesome AI4Finance：回測工具索引", "url": "https://github.com/AI4Finance-Foundation/Awesome_AI4Finance#quantitative-trading--backtesting" }
+      ],
+      "steps": ["事先寫下少量要比較的均線長度和期間。", "保持其他規則相同，記錄全部結果。", "判斷優勢是否只集中在一個參數或短時間窗。"],
+      "deliverable": "參數與期間比較表，以及穩定性判斷。",
+      "example": "10、20、30 日均線在三段期間各有表現；若只有 20 日在一段期間獲利，先標記為不穩定。",
+      "completionCriteria": ["保留所有事先選定的比較結果。", "結論有說明對參數及期間的敏感度。"]
+    },
+    {
+      "id": "w07-symbols", "week": 7, "stageId": "robustness", "prerequisiteIds": ["w06-parameters"], "title": "跨標的檢查規則",
+      "concept": "一檔股票的成功，可能來自個別事件而不是可重複的規則。先定義選樣方式，再選多檔股票套用完全相同的規則；不得先看績效才留下贏家。記錄流動性與資料可得期間差異，並檢視失敗案例。",
+      "resources": [
+        { "title": "FinMind：台股資料入門", "url": "https://finmind.github.io/en/quickstart/" },
+        { "title": "Awesome AI4Finance：策略研究資源", "url": "https://github.com/AI4Finance-Foundation/Awesome_AI4Finance" }
+      ],
+      "steps": ["在看結果前寫下選樣條件及標的名單。", "用相同參數、成本與期間測試各標的。", "整理成功和失敗案例及可能原因。"],
+      "deliverable": "跨標的結果表與至少一個失敗案例。",
+      "example": "事先選定五檔具指定流動性的股票；全部呈現結果，不移除虧損標的。",
+      "completionCriteria": ["可查證標的名單在測試前已固定。", "成功及失敗結果均列入結論。"]
+    },
+    {
+      "id": "w08-holdout", "week": 8, "stageId": "robustness", "prerequisiteIds": ["w07-symbols"], "title": "用保留期間驗證",
+      "concept": "調整規則和評估規則若使用同一段歷史，結果容易過度樂觀。依時間先後切開資料：前段用於形成和調整假說，後段只做一次保留驗證。保留期間結果若不好，記錄失敗；不要再用它反覆調參後仍稱作獨立驗證。",
+      "resources": [
+        { "title": "scikit-learn：時間序列切分", "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html" },
+        { "title": "VectorBT：投資組合研究文件", "url": "https://vectorbt.dev/api/portfolio/base/" }
+      ],
+      "steps": ["先固定資料分界、規則和參數。", "僅用保留期間計算一次主要結果。", "比較調整期間與保留期間，記錄落差。"],
+      "deliverable": "未調整保留期間參數的驗證結果。",
+      "example": "在前段決定 20 日均線後，封存設定，再計算後段結果；後段虧損也照實記錄。",
+      "completionCriteria": ["列出分界日期與封存的規則。", "說明是否曾用保留期間重新調整參數。"]
+    },
+    {
+      "id": "w09-failures", "week": 9, "stageId": "conclusion", "prerequisiteIds": ["w08-holdout"], "title": "拆解失敗交易",
+      "concept": "策略研究的價值不只在平均數，還在知道它何時容易失效。挑出表現最差的交易，對照當時市場情境、進出場規則和資料品質；把觀察與推測分開。任何新解釋都先當成待驗證假說，而非事後合理化。",
+      "resources": [
+        { "title": "Awesome AI4Finance：風險管理資源", "url": "https://github.com/AI4Finance-Foundation/Awesome_AI4Finance#portfolio-management--risk" },
+        { "title": "Backtrader：交易分析工具", "url": "https://www.backtrader.com/docu/analyzers/analyzers/" }
+      ],
+      "steps": ["按事先寫明的損失衡量方式挑選最差交易。", "逐筆檢查訊號、成交及市場情境。", "列出確定事實和仍需新資料驗證的推測。"],
+      "deliverable": "失敗原因與尚待驗證假說紀錄。",
+      "example": "觀察：連續小幅跌破均線導致多次交易；推測：盤整期訊號較差，尚需其他期間驗證。",
+      "completionCriteria": ["至少分析三筆不利交易或明確說明交易不足。", "事實與推測有分開呈現。"]
+    },
+    {
+      "id": "w10-report", "week": 10, "stageId": "conclusion", "prerequisiteIds": ["w09-failures"], "title": "寫出可檢查的研究結論",
+      "concept": "最終報告要讓未參與實驗的人也能重現與質疑結果。依序交代假說、資料、選樣、規則、成交和成本假設、比較基準、全部主要結果、保留期間及限制。結論可為繼續、修改或放棄；沒有足夠證據時，明確說不知道也是有效研究結論。",
+      "resources": [
+        { "title": "Awesome AI4Finance：進階研究入口", "url": "https://github.com/AI4Finance-Foundation/Awesome_AI4Finance" },
+        { "title": "FinRL Tutorials：完成基礎後的延伸教材", "url": "https://github.com/AI4Finance-Foundation/FinRL-Tutorials" }
+      ],
+      "steps": ["整合各週成果成一份可重現的研究報告。", "列出支持與反對此策略的證據及尚未處理的限制。", "選擇繼續、修改或放棄，指定下一個可驗證問題。"],
+      "deliverable": "最終研究報告及繼續／修改／放棄決定。",
+      "example": "成本後與保留期間沒有穩定優勢，因此暫不進入模擬交易；下一步研究盤整期判定，但另留新資料驗證。",
+      "completionCriteria": ["報告涵蓋資料、方法、基準、風險及限制。", "有明確決定與下一個可驗證問題。"]
+    }
+  ]
+}

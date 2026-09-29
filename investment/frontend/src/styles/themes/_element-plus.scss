@@ -1,0 +1,120 @@
+// ============================================
+// Element Plus overrides & micro-interactions
+// ============================================
+
+body {
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+// Buttons micro-interactions
+.el-button,
+button,
+.el-card {
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast),
+    background-color var(--duration-fast),
+    border-color var(--duration-fast) !important;
+}
+
+.el-button:active,
+button:active {
+  transform: scale(0.96) !important;
+}
+
+// Cards micro-interactions
+.el-card {
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--glass-border) !important;
+  background: var(--color-bg-card) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.el-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.el-card:active {
+  transform: scale(0.98) !important;
+}
+
+// Table styling overrides (Modern minimal)
+.el-table {
+  --el-table-border-color: var(--color-border) !important;
+  --el-table-bg-color: transparent !important;
+  --el-table-tr-bg-color: transparent !important;
+  --el-table-header-bg-color: transparent !important;
+  background-color: transparent !important;
+
+  th.el-table__cell {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    font-weight: 600 !important;
+  }
+
+  td.el-table__cell {
+    border-bottom: 1px solid var(--color-border) !important;
+  }
+
+  .el-table__row:hover > td.el-table__cell {
+    background-color: var(--color-bg-hover) !important;
+  }
+}
+
+// Dialog overlays
+.el-dialog {
+  border-radius: var(--radius-lg) !important;
+  background: var(--color-bg-card) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+}
+
+// Inputs
+.el-input__wrapper,
+.el-textarea__inner {
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 0 0 1px var(--color-border) inset !important;
+  background-color: var(--color-bg-secondary) !important;
+  transition: all var(--duration-fast) !important;
+
+  &:hover {
+    box-shadow: 0 0 0 1px var(--color-border-hover) inset !important;
+  }
+
+  &.is-focus {
+    box-shadow: 0 0 0 2px var(--color-accent) inset !important;
+    background-color: var(--color-bg-primary) !important;
+  }
+}
+
+// Skeleton loading
+.el-skeleton {
+  --el-skeleton-color: var(--color-bg-hover) !important;
+  --el-skeleton-to-color: var(--color-bg-active) !important;
+}
+
+.el-skeleton__item {
+  border-radius: var(--radius-sm) !important;
+}
+
+// Empty state
+.el-empty {
+  --el-empty-fill-color-1: var(--color-bg-hover) !important;
+  --el-empty-fill-color-2: var(--color-bg-active) !important;
+  --el-empty-fill-color-3: var(--color-bg-secondary) !important;
+  --el-empty-fill-color-4: var(--color-bg-card) !important;
+  --el-empty-fill-color-5: var(--color-bg-primary) !important;
+  --el-text-color-secondary: var(--color-text-muted) !important;
+
+  padding: var(--gap-xl) 0 !important;
+
+  .el-empty__description p {
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+}

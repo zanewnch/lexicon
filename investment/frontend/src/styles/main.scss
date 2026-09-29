@@ -1,0 +1,24 @@
+// ============================================
+// Entry — imports only
+// 1. abstracts (variables/mixins) — 必須最先
+// 2. base (reset)
+// 3. layout, components, themes
+// 4. utilities — 最後載入以便 override
+// ============================================
+
+@use './abstracts/variables';
+@use './base/reset';
+
+@use './layout/app';
+
+@use './components/section';
+@use './components/table';
+@use './components/tag';
+@use './components/button';
+@use './components/form';
+@use './components/animations';
+
+@use './themes/element-plus';
+
+@use './utilities/text';
+@use './utilities/responsive';

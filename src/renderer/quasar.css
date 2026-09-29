@@ -72,3 +72,51 @@ body { color: var(--theme-text); background: radial-gradient(circle at 72% 0%, r
 .lexicon-page .text-grey-5 { color: var(--theme-muted) !important; }
 .lexicon-page .text-grey-6 { color: var(--theme-subtle) !important; }
 .lexicon-status-error { color: var(--theme-error); }
+.youtube-workspace { min-width: 0; }
+.youtube-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.youtube-title { max-width: 760px; color: var(--theme-text-strong); font-weight: 760; letter-spacing: -.045em; line-height: 1.08; }
+.youtube-control-card { overflow: hidden; }
+.youtube-control-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.youtube-position { min-width: 100px; margin-right: auto; }
+.youtube-control-group { display: flex; align-items: center; gap: 8px; }
+.youtube-control-group .q-btn-toggle { background: var(--theme-surface-strong); }
+.youtube-control-group .q-btn { min-height: 30px; padding: 0 8px; color: var(--theme-muted); font-size: 11px; }
+.youtube-control-group .q-btn--active { color: var(--theme-accent-text); }
+.youtube-control-hint { padding-top: 0; color: var(--theme-subtle); font-size: 11px; }
+.youtube-study-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(230px, .75fr); align-items: start; gap: 20px; }
+.youtube-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.youtube-search { width: 190px; }
+.youtube-transcript-list { max-height: 620px; overflow: auto; border-color: var(--theme-border-soft); background: rgb(15 23 42 / 12%); }
+.youtube-segment { border-left: 3px solid transparent; transition: background-color 140ms ease, border-color 140ms ease; }
+.youtube-segment:hover { background: var(--theme-hover); }
+.youtube-segment-active { border-left-color: var(--theme-accent-strong); background: var(--theme-active); }
+.youtube-timestamp { padding: 3px 5px; border: 0; border-radius: 5px; color: var(--theme-accent); background: transparent; font: inherit; font-size: 11px; cursor: pointer; }
+.youtube-timestamp:hover, .youtube-timestamp:focus-visible { outline: 0; background: var(--theme-focus); }
+.youtube-english-line { color: var(--theme-text-strong); font-size: 16px; line-height: 1.55; }
+.youtube-word { padding: 0; border: 0; border-bottom: 1px dashed var(--theme-border); color: inherit; background: transparent; font: inherit; cursor: pointer; }
+.youtube-word:hover, .youtube-word:focus-visible { border-bottom-color: var(--theme-accent); color: var(--theme-accent); outline: 0; }
+.youtube-translation-line { color: var(--theme-muted) !important; font-size: 14px; line-height: 1.55; }
+.youtube-segment-actions { align-self: flex-start; gap: 3px; }
+.youtube-side-column { position: sticky; top: 18px; }
+.youtube-lookup-card { min-height: 220px; }
+.youtube-lookup-term { color: var(--theme-text-strong); font-size: 28px; font-weight: 750; letter-spacing: -.03em; }
+.youtube-lookup-meaning { color: var(--theme-text-strong); font-size: 16px; line-height: 1.55; }
+.youtube-video-card { border-color: rgb(96 165 250 / 20%); }
+.youtube-method-card { border-color: rgb(96 165 250 / 20%); }
+.youtube-loop-steps { display: flex; flex-wrap: wrap; gap: 6px; }
+.youtube-loop-steps span { padding: 5px 8px; border: 1px solid var(--theme-border-soft); border-radius: 999px; color: var(--theme-accent); background: var(--theme-focus); font-size: 11px; }
+.youtube-recent-list { max-width: 620px; margin-right: auto; margin-left: auto; border-color: var(--theme-border-soft); background: var(--theme-surface); }
+.youtube-status { color: var(--theme-warning); font-size: 12px; }
+.youtube-empty { max-width: 580px; margin: 100px auto 0; text-align: center; }
+.youtube-empty-mark { display: grid; width: 58px; height: 58px; margin: 0 auto 22px; place-items: center; border-radius: 18px; color: #fff; background: linear-gradient(145deg, #ef4444, #fb7185); box-shadow: 0 16px 30px rgb(239 68 68 / 22%); font-size: 20px; }
+.youtube-empty-mark-error { background: linear-gradient(145deg, #f59e0b, #f97316); box-shadow: 0 16px 30px rgb(245 158 11 / 22%); }
+@media (max-width: 850px) {
+  .youtube-study-grid { grid-template-columns: 1fr; }
+  .youtube-side-column { position: static; }
+}
+@media (max-width: 620px) {
+  .youtube-control-row { align-items: flex-start; }
+  .youtube-control-group { width: 100%; justify-content: space-between; }
+  .youtube-search { width: 150px; }
+  .youtube-segment-actions .q-btn:not(:first-child) { display: none; }
+}

@@ -21,6 +21,9 @@ const busy = ref(false)
 const theme = ref<ThemeMode>(initializeTheme())
 const model = ref<ModelStatus | null>(null)
 const youtubeTranscript = ref<YouTubeTranscript | null>(null)
+const youtubeError = ref('')
+const investmentMessage = ref('')
+const investmentUrl = ref('')
 const learningComplete = ref(false)
 const direction = computed(() => detectTranslationDirection(source.value))
 const labels = computed(() => getDirectionLabels(direction.value))
@@ -47,6 +50,12 @@ async function learnThis(): Promise<void> {
   finally { savingLearning.value = false }
 }
 async function loadModel(): Promise<void> { model.value = await window.api.getModelStatus() }
+async function openInvestment(browser: boolean): Promise<void> {
+  investmentMessage.value = '投資服務啟動中…'
+  const next = browser ? await window.api.openInvestmentBrowser() : await window.api.openInvestmentWindow()
+  investmentUrl.value = next.url ?? ''
+  investmentMessage.value = next.state === 'ready' ? '' : (next.message ?? '投資服務暫時無法啟動')
+}
 function formatBytes(bytes: number): string { return bytes >= 1024 ** 3 ? `${(bytes / 1024 ** 3).toFixed(2)} GB` : `${(bytes / 1024 ** 2).toFixed(0)} MB` }
 function chooseTheme(mode: ThemeMode): void { theme.value = mode; setTheme(mode); void window.api.setSetting('theme', mode) }
 function isInteractiveTarget(target: EventTarget | null): boolean {
@@ -68,7 +77,8 @@ onMounted(() => {
   })
   void loadModel()
   window.api.onModelReady(() => void loadModel())
-  window.api.onYouTubeTranscriptOpen((transcript) => { youtubeTranscript.value = transcript; view.value = 'youtube' })
+  window.api.onYouTubeTranscriptOpen((transcript) => { youtubeError.value = ''; youtubeTranscript.value = transcript; view.value = 'youtube' })
+  window.api.onYouTubeTranscriptError(({ message }) => { youtubeTranscript.value = null; youtubeError.value = message; view.value = 'youtube' })
   document.addEventListener('keydown', focusSourceOnEnter)
   window.addEventListener('learning:updated', refreshLearningComplete)
   void refreshLearningComplete()
@@ -89,10 +99,14 @@ onUnmounted(() => { document.removeEventListener('keydown', focusSourceOnEnter);
         <div class="lexicon-nav-label q-mt-md">英文學習資源</div>
         <q-item clickable :active="view === 'ielts'" @click="view = 'ielts'"><q-item-section avatar><q-icon name="record_voice_over" /></q-item-section><q-item-section>雅思練習</q-item-section></q-item>
         <q-item clickable :active="view === 'history'" @click="view = 'history'"><q-item-section avatar><q-icon name="history" /></q-item-section><q-item-section>搜尋紀錄</q-item-section></q-item>
+        <div class="lexicon-nav-label q-mt-md">投資</div>
+        <q-item clickable @click="openInvestment(false)"><q-item-section avatar><q-icon name="candlestick_chart" /></q-item-section><q-item-section>投資工作區</q-item-section></q-item>
+        <q-item clickable @click="openInvestment(true)"><q-item-section avatar><q-icon name="open_in_browser" /></q-item-section><q-item-section>在瀏覽器開啟</q-item-section></q-item>
       </q-list>
       <div class="absolute-bottom q-pa-md lexicon-drawer-footer"><q-item clickable :active="view === 'settings'" @click="view = 'settings'"><q-item-section avatar><q-icon name="settings" /></q-item-section><q-item-section>設定</q-item-section></q-item></div>
     </q-drawer>
     <q-page-container>
+      <q-banner v-if="investmentMessage || investmentUrl" dense class="bg-grey-9 text-white">{{ investmentMessage || `投資網站：${investmentUrl}` }}</q-banner>
       <q-page class="lexicon-page" :class="{ 'lexicon-page-wide': view === 'ielts' }">
         <template v-if="view === 'translate'">
           <div class="lexicon-hero row items-start justify-between q-col-gutter-md"><div><div class="text-overline text-primary">Lexicon · {{ hotkeyLabel }}</div><div class="text-h3">{{ labels.title }}</div><div class="text-body1 lexicon-lead q-mt-sm">{{ direction === 'zh-to-en' ? '輸入繁體中文，使用本機 Gemma 4 翻譯成自然英文。' : '輸入英文，使用本機 Gemma 4 翻譯成自然繁體中文。' }}</div></div><q-badge class="lexicon-local-badge" outline><span></span>Local private</q-badge></div>
@@ -102,7 +116,7 @@ onUnmounted(() => { document.removeEventListener('keydown', focusSourceOnEnter);
         </template>
         <NewsWorkspace v-else-if="view === 'news'" />
         <LearningWorkspace v-else-if="view === 'learn'" />
-        <YouTubeTranscript v-else-if="view === 'youtube'" :transcript="youtubeTranscript" />
+        <YouTubeTranscript v-else-if="view === 'youtube'" :transcript="youtubeTranscript" :error="youtubeError" />
         <IeltsWorkspace v-else-if="view === 'ielts'" />
         <SearchHistoryWorkspace v-else-if="view === 'history'" />
         <Settings v-else />

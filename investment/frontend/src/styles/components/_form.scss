@@ -1,0 +1,22 @@
+// ============================================
+// Form utility classes
+// (base/_reset.scss 已處理 bg/border/focus)
+// ============================================
+
+.form-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--gap-xs);
+}
+
+.form-input {
+  width: 100%;
+}
+
+.form-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}

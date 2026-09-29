@@ -21,6 +21,13 @@ export type YouTubeTranscript = {
   segments: YouTubeTranscriptSegment[]
 }
 
+export type YouTubeControl =
+  | { type: 'youtube:control'; action: 'seek'; videoId: string; positionMs: number }
+  | { type: 'youtube:control'; action: 'playback'; videoId: string; value: 'play' | 'pause' | 'toggle' }
+  | { type: 'youtube:control'; action: 'rate'; videoId: string; value: number }
+  | { type: 'youtube:control'; action: 'caption-mode'; videoId: string; value: 'both' | 'english' | 'translation' | 'hidden' }
+  | { type: 'youtube:control'; action: 'repeat'; videoId: string; startMs: number; endMs: number }
+
 export type YouTubeMessage =
   | { type: 'caption:update'; caption: YouTubeCaption }
   | { type: 'caption:open-popup'; caption: YouTubeCaption }
@@ -30,6 +37,8 @@ export type YouTubeMessage =
   | { type: 'transcript:segment'; videoId: string; segmentId: string; translation: string }
   | { type: 'transcript:progress'; videoId: string; completed: number; total: number }
   | { type: 'transcript:error'; videoId: string; code: string; message: string }
+  | { type: 'player:position'; videoId: string; positionMs: number; playing: boolean }
+  | YouTubeControl
 
 export function isYouTubeMessage(value: unknown): value is YouTubeMessage {
   if (!value || typeof value !== 'object') return false
@@ -59,6 +68,16 @@ export function isYouTubeMessage(value: unknown): value is YouTubeMessage {
     case 'transcript:segment': return hasText(candidate.videoId) && hasText(candidate.segmentId) && hasText(candidate.translation)
     case 'transcript:progress': return hasText(candidate.videoId) && Number.isSafeInteger(candidate.completed) && Number.isSafeInteger(candidate.total)
     case 'transcript:error': return typeof candidate.videoId === 'string' && hasText(candidate.code) && hasText(candidate.message)
+    case 'player:position': return hasText(candidate.videoId) && typeof candidate.positionMs === 'number' && typeof candidate.playing === 'boolean'
+    case 'youtube:control': {
+      if (!hasText(candidate.videoId) || typeof candidate.action !== 'string') return false
+      if (candidate.action === 'seek') return typeof candidate.positionMs === 'number' && candidate.positionMs >= 0
+      if (candidate.action === 'playback') return candidate.value === 'play' || candidate.value === 'pause' || candidate.value === 'toggle'
+      if (candidate.action === 'rate') return typeof candidate.value === 'number' && candidate.value > 0 && candidate.value <= 2
+      if (candidate.action === 'caption-mode') return candidate.value === 'both' || candidate.value === 'english' || candidate.value === 'translation' || candidate.value === 'hidden'
+      if (candidate.action === 'repeat') return typeof candidate.startMs === 'number' && typeof candidate.endMs === 'number' && candidate.startMs >= 0 && candidate.endMs > candidate.startMs
+      return false
+    }
     default: return false
   }
 }

@@ -1,8 +1,20 @@
 node_modules/
 out/
 dist/
+investment/frontend/node_modules/
+investment/frontend/dist/
+investment/backend/db.sqlite3
+investment/backend/.env
+investment/backend/media/
+investment/backend/logs/
+investment/credentials.json
+investment/Sinopac.pfx
+build/investment/
+build/investment-venv/
 .vite/
 *.log
+**/__pycache__/
+*.pyc
 
 # Local Electron / OS files
 .DS_Store
@@ -20,3 +32,12 @@ extensions/youtube/dist/
 extensions/youtube/.output/
 extensions/youtube/.wxt/
 
+
+# Harness entrypoint symlinks
+/.claude
+/.codex
+/.agents
+/.github
+/CLAUDE.md
+/AGENTS.md
+/GEMINI.md

@@ -9,13 +9,14 @@
     "dev": "electron-vite dev",
     "youtube:dev": "npm --prefix extensions/youtube run dev",
     "youtube:build": "npm --prefix extensions/youtube run build",
+    "investment:build": "npm --prefix investment/frontend run build && node tools/investment/build-service.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build": "npm run typecheck && electron-vite build",
     "native-host:build": "dotnet publish native-host/LexiconNativeHost.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o native-host/publish/win-x64",
     "native-host:build:mac": "dotnet publish native-host/LexiconNativeHost.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -o native-host/publish/osx-arm64 && dotnet publish native-host/LexiconNativeHost.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o native-host/publish/osx-x64",
-    "package": "npm run native-host:build && npm run youtube:build && npm run build && electron-builder --config electron-builder.config.mjs --win",
-    "package:mac": "npm run native-host:build:mac && npm run youtube:build && npm run build && electron-builder --config electron-builder.config.mjs --mac",
+    "package": "npm run native-host:build && npm run youtube:build && npm run investment:build && npm run build && electron-builder --config electron-builder.config.mjs --win",
+    "package:mac": "npm run native-host:build:mac && npm run youtube:build && npm run investment:build && npm run build && electron-builder --config electron-builder.config.mjs --mac",
     "ielts:materials": "python tools/ielts/build_study_materials.py"
   },
   "devDependencies": {

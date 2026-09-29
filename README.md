@@ -1,5 +1,25 @@
 # Lexicon
 
+## 投資工作區
+
+Lexicon 已整合原 `investment` 的台股學習、筆記、分析、策略與交易系統。開啟 Lexicon 後，在側邊欄選「投資工作區」可開啟獨立桌面視窗；「在瀏覽器開啟」會顯示並開啟同一個本機網站。桌面與瀏覽器共用一個 Django 服務及同一份投資資料。完全結束 Lexicon 時服務停止；投資視窗啟動失敗不影響翻譯與英文學習。
+
+## Agent 技能
+
+本 repo 的 `AGENTS.md`、`CLAUDE.md`、`.codex/`、`.claude/` 等入口連至 `own_harness_engineering/profiles/lexicon/`。共用技能由 `harness-core` plugin 提供；投資的架構、術語、策略研究與課程技能沿用同一份 `harness-finance` plugin，投資程式路徑以本 repo 的 `investment/` 為根。Lexicon profile 關閉 `harness-ia`。本機 Claude 許可設定保留在 profile 的 `.claude/settings.local.json`，由原入口連結讀取，不納入 Git。
+
+首次啟動會尋找 `Documents/GitHub/investment`，或 `LEXICON_INVESTMENT_LEGACY_ROOT` 指定的舊專案，並在 Lexicon 使用者資料目錄下建立 `investment/`。若找到舊資料庫，會以 SQLite 備份 API 搬遷資料庫並核對完整性和每張表的筆數，同時複製策略、舊筆記快照、媒體與本機設定；舊專案保持原狀。若找不到舊資料，則建立新資料庫。要從其他路徑搬遷，請在第一次啟動前設定 `LEXICON_INVESTMENT_LEGACY_ROOT`。
+
+投資資料目錄內的 `investment.sqlite3`、`strategies.json`、`seedNotes.json`、`media/`、`.env`、`credentials.json` 和 `Sinopac.pfx` 是本機資料，未納入安裝包或 Git。交易仍須經過原本的模擬／正式環境、Trade PIN 與正式交易開關。網站只監聽 `127.0.0.1`；依目前使用偏好，沒有額外的登入密碼。
+
+若首次搬遷需要回復：完全結束 Lexicon，將使用者資料目錄下的 `investment/` 改名保留，再啟動 Lexicon 重新從原 investment 專案匯入。匯入程式不會修改舊專案；重匯入前先核對舊專案資料是否仍為預期版本。不要在投資服務運作時替換 SQLite 檔案。
+
+若在設定中啟用「關閉 App 時自動備份」，Lexicon 會在所選資料夾建立英文資料庫備份與 `investment-backup-.../`；後者包含投資 SQLite、策略、媒體與本機交易設定。從備份回復時，先完全結束 Lexicon，將現有 `investment/` 改名保留，再把整個 `investment-backup-.../` 複製為使用者資料目錄下的 `investment/`。備份含本機憑證，請妥善保管所選資料夾。
+
+開發版首次使用需在 `investment/frontend` 執行 `npm ci` 與 `npm run build`，並為 Python 安裝 `investment/backend/requirements.txt`。打包版由 `npm run package`（Windows）或 `npm run package:mac`（macOS）編入投資前端與 Python 服務；建置機需先安裝 `investment/backend/requirements-build.txt`。macOS 安裝包需在對應的 macOS 架構上建置與驗證。
+
+Notes CLI 在開發環境沿用 `python investment/backend/manage.py notes_cli ...`；設定 `LEXICON_INVESTMENT_DATA_DIR` 為 Lexicon 使用者資料目錄下的 `investment/`，即可讀寫與桌面、瀏覽器相同的筆記。安裝版的 `investment-service` 執行檔也支援 `notes_cli` 子命令，須傳入相同資料目錄環境變數。
+
 Lexicon 是常駐桌面的本地 LLM 翻譯工具。Windows 選取文字後按下 `Ctrl+Shift+Q`，或 macOS 按下 `⌘⇧L`，會在游標附近開啟小視窗並自動翻譯；沒有選取文字時，視窗會直接提供輸入框。
 
 ## 目前功能

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { type TranslationEngine } from './llm'
 import { type TranslationJobScheduler } from './translationJobScheduler'
-import { type YouTubeCaption, type YouTubeMessage, type YouTubeTranscript, isYouTubeMessage } from '../shared/youtube'
+import { type YouTubeCaption, type YouTubeControl, type YouTubeMessage, type YouTubeTranscript, isYouTubeMessage } from '../shared/youtube'
 
 export const YOUTUBE_PIPE_NAME = process.platform === 'win32'
   ? '\\\\.\\pipe\\lexicon-youtube-bridge'
@@ -18,11 +18,19 @@ type BridgeOptions = {
   onTranscript: (transcript: YouTubeTranscript) => void
   onTranscriptSegment: (videoId: string, segmentId: string, translation: string) => void
   onTranscriptProgress: (videoId: string, completed: number, total: number) => void
+  onTranscriptError: (videoId: string, message: string) => void
+  onPlayerPosition: (videoId: string, positionMs: number, playing: boolean) => void
 }
 
-export function startYouTubeBridge(options: BridgeOptions): Server {
+export type YouTubeBridgeServer = Server & { sendToExtensions: (message: YouTubeControl) => void }
+
+export function startYouTubeBridge(options: BridgeOptions): YouTubeBridgeServer {
   const latestSequence = new Map<string, number>()
+  const clients = new Set<Socket>()
   const server = createServer((socket) => {
+    clients.add(socket)
+    socket.once('close', () => clients.delete(socket))
+    socket.once('error', () => clients.delete(socket))
     let buffer = ''
     socket.on('data', (chunk: Buffer) => {
       buffer += chunk.toString('utf8')
@@ -36,7 +44,10 @@ export function startYouTubeBridge(options: BridgeOptions): Server {
         void handleMessage(socket, message, latestSequence, options)
       }
     })
-  })
+  }) as YouTubeBridgeServer
+  server.sendToExtensions = (message) => {
+    for (const client of clients) send(client, message)
+  }
   if (process.platform !== 'win32') {
     // Unix-domain socket files can survive an unclean shutdown. It is safe to
     // remove this fixed per-user temporary path before listening again.
@@ -50,6 +61,8 @@ export function startYouTubeBridge(options: BridgeOptions): Server {
 
 async function handleMessage(socket: Socket, message: YouTubeMessage, latestSequence: Map<string, number>, options: BridgeOptions): Promise<void> {
   if (message.type === 'caption:open-popup') { options.onCaptionPopup(message.caption); return }
+  if (message.type === 'player:position') { options.onPlayerPosition(message.videoId, message.positionMs, message.playing); return }
+  if (message.type === 'transcript:error') { options.onTranscriptError(message.videoId, message.message); return }
   if (message.type === 'caption:update') {
     const { caption } = message
     if (!isCaption(caption)) { send(socket, { type: 'caption:error', videoId: caption.videoId, sequence: caption.sequence, code: 'invalid-caption', message: '字幕資料無效。' }); return }

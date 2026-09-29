@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { type LookupResult, type TranslationRequestMode } from '../shared/lookup'
+import type { YouTubeControl } from '../shared/youtube'
 import type { GamificationDashboard, LearningDashboard, LearningItem, ReviewExerciseType, ReviewFeedback } from '../shared/learning'
 import type { NewsArticle } from '../main/news'
 import type { ModelBenchmark } from '../main/modelBenchmark'
@@ -62,6 +63,9 @@ function subscribe<T>(channel: string, callback: (value: T) => void): () => void
 }
 
 contextBridge.exposeInMainWorld('api', {
+  investmentStatus: (): Promise<{ state: 'starting' | 'ready' | 'error'; url?: string; message?: string }> => ipcRenderer.invoke('investment:status'),
+  openInvestmentWindow: (): Promise<{ state: 'starting' | 'ready' | 'error'; url?: string; message?: string }> => ipcRenderer.invoke('investment:open-window'),
+  openInvestmentBrowser: (): Promise<{ state: 'starting' | 'ready' | 'error'; url?: string; message?: string }> => ipcRenderer.invoke('investment:open-browser'),
   platform: process.platform,
   debugLog: (scope: string, event: string, details: Record<string, unknown>): void =>
     ipcRenderer.send('debug:log', { scope, event, details }),
@@ -88,6 +92,9 @@ contextBridge.exposeInMainWorld('api', {
   onYouTubeTranscriptOpen: (callback: (transcript: import('../shared/youtube').YouTubeTranscript) => void) => subscribe('youtube:transcript-open', callback),
   onYouTubeTranscriptSegment: (callback: (segment: { videoId: string; segmentId: string; translation: string }) => void) => subscribe('youtube:transcript-segment', callback),
   onYouTubeTranscriptProgress: (callback: (progress: { videoId: string; completed: number; total: number }) => void) => subscribe('youtube:transcript-progress', callback),
+  onYouTubeTranscriptError: (callback: (error: { videoId: string; message: string }) => void) => subscribe('youtube:transcript-error', callback),
+  onYouTubePlayerPosition: (callback: (position: { videoId: string; positionMs: number; playing: boolean }) => void) => subscribe('youtube:player-position', callback),
+  controlYouTube: (control: YouTubeControl): Promise<{ ok: true } | { ok: false; message: string }> => ipcRenderer.invoke('youtube:control', control),
   onSetupError: (callback: (message: string) => void) => subscribe('setup:error', callback),
   closeSetup: (): void => ipcRenderer.send('setup:close'),
   loadIeltsWorkspace: (initialWorkspace: IeltsWorkspace): Promise<IeltsWorkspace> =>

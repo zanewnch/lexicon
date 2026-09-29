@@ -33,10 +33,11 @@ import { LearningStore } from './learningStore'
 import type { LearningExtraction, ReviewExerciseType } from '../shared/learning'
 import { detectTranslationDirection } from '../shared/translationDirection'
 import { isEnglishLookupQuery, type TranslationRequestMode } from '../shared/lookup'
-import { startYouTubeBridge } from './youtubeBridge'
+import { startYouTubeBridge, type YouTubeBridgeServer } from './youtubeBridge'
 import { registerMacYouTubeNativeHost } from './youtubeNativeHost'
-import { type YouTubeTranscript } from '../shared/youtube'
+import { isYouTubeMessage, type YouTubeControl, type YouTubeTranscript } from '../shared/youtube'
 import { isSafeArticleUrl, searchNews } from './news'
+import { backupInvestmentData, getInvestmentStatus, openInvestmentBrowser, openInvestmentWindow, startInvestmentService, stopInvestmentService } from './investmentService'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // Command+Shift+Q is reserved by macOS for log out, so use a conflict-free
@@ -76,6 +77,7 @@ let popupFocusCheck: NodeJS.Timeout | undefined
 let shouldQuitAfterBackup = false
 const activeTranslationRequestIds = new Set<number>()
 let modelBenchmarkInProgress = false
+let youtubeBridge: YouTubeBridgeServer | undefined
 const MODEL_BENCHMARKS_SETTING = 'model-benchmarks'
 const gotSingleInstanceLock = app.requestSingleInstanceLock()
 
@@ -95,16 +97,19 @@ if (!gotSingleInstanceLock) {
   })
 
   app.whenReady().then(() => {
+    void startInvestmentService()
     createTray()
     createWindow('popup')
     registerIpc()
-    startYouTubeBridge({
+    youtubeBridge = startYouTubeBridge({
       translator,
       translationJobs,
       onCaptionPopup: (caption) => void openPopup({ text: caption.text, source: 'selection' }, screen.getCursorScreenPoint()),
       onTranscript: showYouTubeTranscript,
       onTranscriptSegment: (videoId, segmentId, translation) => sendYouTubeEvent('youtube:transcript-segment', { videoId, segmentId, translation }),
-      onTranscriptProgress: (videoId, completed, total) => sendYouTubeEvent('youtube:transcript-progress', { videoId, completed, total })
+      onTranscriptProgress: (videoId, completed, total) => sendYouTubeEvent('youtube:transcript-progress', { videoId, completed, total }),
+      onTranscriptError: (_videoId, message) => showYouTubeTranscriptError(message),
+      onPlayerPosition: (videoId, positionMs, playing) => sendYouTubeEvent('youtube:player-position', { videoId, positionMs, playing })
     })
     void registerMacYouTubeNativeHost().catch((error) => {
       debugError('youtube', 'macOS native host registration failed', error)
@@ -126,6 +131,7 @@ if (!gotSingleInstanceLock) {
   })
 
   app.on('will-quit', () => {
+    stopInvestmentService()
     globalShortcut.unregisterAll()
     void translator.dispose()
     ieltsWorkspaceStore?.close()
@@ -324,6 +330,17 @@ async function handleHotkey(): Promise<void> {
   startPopupFocusCheck(currentPopup)
 }
 
+function showYouTubeTranscriptError(message: string): void {
+  const mainWindow = createWindow('app')
+  const sendError = (): void => {
+    if (!mainWindow.isDestroyed()) mainWindow.webContents.send('youtube:transcript-error', { message })
+  }
+  if (mainWindow.webContents.isLoading()) mainWindow.webContents.once('did-finish-load', sendError)
+  else sendError()
+  mainWindow.show()
+  mainWindow.focus()
+}
+
 async function openPopup(payload: OpenPopupPayload, point: Electron.Point, focus = true): Promise<void> {
   const overlay = createPopupOverlay(point)
   const popupWindow = createWindow('popup')
@@ -411,6 +428,9 @@ function showSetupWindow(message?: string): void {
 }
 
 function registerIpc(): void {
+  ipcMain.handle('investment:status', () => getInvestmentStatus())
+  ipcMain.handle('investment:open-window', () => openInvestmentWindow())
+  ipcMain.handle('investment:open-browser', () => openInvestmentBrowser())
   ipcMain.on('debug:log', (_event, payload: unknown) => {
     if (!isDevelopment || !isDebugPayload(payload)) return
     console.log(`[Lexicon debug][renderer:${payload.scope}] ${payload.event}`, payload.details)
@@ -765,7 +785,10 @@ async function backupBeforeQuit(): Promise<void> {
   try {
     const store = getIeltsWorkspaceStore()
     const directory = store.getSetting('backup-directory')
-    if (directory) await store.backupTo(directory)
+    if (directory) {
+      await store.backupTo(directory)
+      await backupInvestmentData(directory)
+    }
   } catch (error) {
     console.error('Lexicon backup failed before quit', error)
   } finally {
@@ -818,6 +841,15 @@ function parseIeltsWorkspace(value: unknown): IeltsWorkspace {
   ipcMain.handle('history:delete', (_event, recordId: unknown) => {
     if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')
     getLearningStore().deleteTranslationRecord(recordId as number)
+  })
+
+  ipcMain.handle('youtube:control', (_event, payload: unknown) => {
+    if (!isYouTubeMessage(payload) || payload.type !== 'youtube:control') {
+      return { ok: false, message: 'YouTube 控制指令無效。' }
+    }
+    if (!youtubeBridge) return { ok: false, message: 'YouTube Extension 尚未連線。' }
+    youtubeBridge.sendToExtensions(payload as YouTubeControl)
+    return { ok: true }
   })
   ipcMain.handle('learning:create-from-record', async (_event, recordId: unknown) => {
     if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')

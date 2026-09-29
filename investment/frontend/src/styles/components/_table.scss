@@ -1,0 +1,116 @@
+// ============================================
+// Data Table (shared)
+// ============================================
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-muted);
+    letter-spacing: 0.3px;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 12px;
+    font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    transition:
+      background var(--duration-fast),
+      transform 0.2s var(--ease-spring);
+
+    &:hover {
+      background: var(--color-bg-hover);
+      transform: translateX(4px);
+      cursor: pointer;
+    }
+
+    &:active {
+      transform: translateX(4px) scale(0.99);
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  &--sticky th {
+    position: sticky;
+    top: 0;
+    background: var(--color-bg-card);
+    z-index: 1;
+  }
+
+  &--compact {
+    td,
+    th {
+      padding: var(--gap-sm) 10px;
+      font-size: 13px;
+    }
+  }
+
+  &__sortable {
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      color: var(--color-accent);
+    }
+  }
+
+  &__num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__code {
+    font-weight: 600;
+    color: var(--color-accent);
+    font-size: 13px;
+  }
+
+  &__name {
+    font-weight: 500;
+  }
+
+  &__rank {
+    font-weight: 700;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    width: 30px;
+  }
+
+  &__sector {
+    font-size: var(--font-size-sm);
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__sticky {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--color-bg-card);
+  }
+
+  &__sticky--second {
+    position: sticky;
+    left: 60px;
+    z-index: 1;
+    background: var(--color-bg-card);
+  }
+}

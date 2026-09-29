@@ -1,0 +1,198 @@
+// ============================================
+// Entrance animations
+// ============================================
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// ============================================
+// Staggered list animations (階梯式進場)
+// ============================================
+
+.anim-stagger > * {
+  animation: fade-in-up 0.5s var(--ease-spring) both;
+}
+
+@for $i from 1 through 20 {
+  .anim-stagger > *:nth-child(#{$i}) {
+    animation-delay: #{$i * 0.05}s;
+  }
+}
+
+.anim-stagger > .card,
+.anim-stagger > section,
+.anim-stagger > div > .card {
+  animation: fade-in-up 0.5s var(--ease-smooth) both;
+
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.07}s;
+    }
+  }
+}
+
+.anim-fade-in {
+  animation: fade-in 0.4s ease both;
+}
+
+.anim-slide-right {
+  animation: slide-in-right 0.35s ease both;
+}
+
+// ============================================
+// Flash highlight for value changes
+// ============================================
+
+@keyframes flash-up {
+  0% {
+    background: var(--color-up-soft);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+@keyframes flash-down {
+  0% {
+    background: var(--color-down-soft);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.flash-up {
+  animation: flash-up 0.6s ease-out;
+}
+
+.flash-down {
+  animation: flash-down 0.6s ease-out;
+}
+
+// ============================================
+// Up/Down arrow indicators (accessibility)
+// ============================================
+
+.arrow-up::before {
+  content: '▲ ';
+  font-size: 0.7em;
+}
+
+.arrow-down::before {
+  content: '▼ ';
+  font-size: 0.7em;
+}
+
+// ============================================
+// Tooltip fade transition
+// ============================================
+
+.hint-fade-enter-active,
+.hint-fade-leave-active {
+  transition: opacity var(--duration-fast) ease;
+}
+.hint-fade-enter-from,
+.hint-fade-leave-to {
+  opacity: 0;
+}
+
+// ============================================
+// Shimmer loading effect
+// ============================================
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-hover) 25%,
+    var(--color-bg-active) 50%,
+    var(--color-bg-hover) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+// ============================================
+// Glow pulse animation
+// ============================================
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px var(--glow-accent);
+  }
+  50% {
+    box-shadow:
+      0 0 20px var(--glow-accent),
+      0 0 40px var(--glow-accent);
+  }
+}
+
+.glow-pulse {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+// ============================================
+// Animated bar fill
+// ============================================
+
+@keyframes bar-fill {
+  from {
+    width: 0%;
+  }
+}
+
+.anim-bar-fill {
+  animation: bar-fill 0.8s var(--ease-smooth) both;
+}
+
+// ============================================
+// Subtle float animation
+// ============================================
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}

@@ -1,0 +1,102 @@
+// ============================================
+// Tag / Badge (unified system)
+// .trade-tag 與 .badge 在本檔內 @extend .tag，故必須同檔
+// ============================================
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1.5;
+
+  &--accent {
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
+  }
+
+  &--up {
+    background: var(--color-up-soft);
+    color: var(--color-up);
+  }
+
+  &--down {
+    background: var(--color-down-soft);
+    color: var(--color-down);
+  }
+
+  &--warn {
+    background: var(--color-warn-soft);
+    color: var(--color-warn);
+  }
+
+  &--muted {
+    background: var(--color-bg-hover);
+    color: var(--color-text-muted);
+  }
+
+  &--sm {
+    padding: 1px 6px;
+    font-size: var(--font-size-xs);
+  }
+}
+
+.trade-tag {
+  @extend .tag;
+
+  &--buy {
+    @extend .tag--down;
+  }
+
+  &--sell {
+    @extend .tag--up;
+  }
+}
+
+// ============================================
+// Badge — unified
+// 注意：原本 styles/main.scss 有兩組 .badge 定義，
+// 第二組（inline-flex、font 13px、發光 up/down/warn）
+// cascade 會覆蓋第一組。此處合併為單一定義：
+// - base 採用第二組（較新）
+// - 額外保留 --tse/--otc（來自第一組）
+// ============================================
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+
+  &--up {
+    color: var(--color-up);
+    background: var(--color-up-soft);
+    box-shadow: 0 0 12px var(--glow-up);
+  }
+
+  &--down {
+    color: var(--color-down);
+    background: var(--color-down-soft);
+    box-shadow: 0 0 12px var(--glow-down);
+  }
+
+  &--warn {
+    color: var(--color-warn);
+    background: var(--color-warn-soft);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+  }
+
+  &--tse {
+    @extend .tag--accent;
+  }
+
+  &--otc {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+  }
+}
