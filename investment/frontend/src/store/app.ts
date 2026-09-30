@@ -49,13 +49,13 @@ export const themes: ThemeOption[] = [
 ]
 
 /**
- * 從 localStorage 讀取上次儲存的主題，若不合法則回傳預設主題 `'midnight'`。
- * @returns 儲存的 ThemeId，或 `'midnight'`（找不到或不合法時）
+ * 從 localStorage 讀取上次儲存的主題，若不合法則回傳預設主題 `'glass'`。
+ * @returns 儲存的 ThemeId，或 `'glass'`（找不到或不合法時）
  */
 function loadTheme(): ThemeId {
   const stored = localStorage.getItem('theme')
   if (stored && themes.some((t) => t.id === stored)) return stored as ThemeId
-  return 'midnight'
+  return 'glass'
 }
 
 /**
