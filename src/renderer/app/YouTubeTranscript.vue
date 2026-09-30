@@ -183,7 +183,7 @@ onBeforeUnmount(() => unsubs.forEach((unsubscribe) => unsubscribe()))
       <q-badge color="positive" outline label="本機翻譯" />
     </div>
 
-    <q-card flat class="lexicon-card youtube-control-card q-mt-lg">
+    <q-card flat class="unus-card youtube-control-card q-mt-lg">
       <q-card-section class="youtube-control-row">
         <q-btn round unelevated color="primary" :icon="playing ? 'pause' : 'play_arrow'" :aria-label="playing ? '暫停影片' : '播放影片'" @click="togglePlayback" />
         <div class="youtube-position"><div class="text-caption text-grey-5">目前位置</div><div class="text-subtitle2">{{ timestamp(positionMs) }} · {{ activeSegmentId ? '同步中' : '等待影片' }}</div></div>
@@ -213,11 +213,11 @@ onBeforeUnmount(() => unsubs.forEach((unsubscribe) => unsubscribe()))
       </section>
 
       <aside class="youtube-side-column">
-        <q-card flat class="lexicon-card youtube-lookup-card">
+        <q-card flat class="unus-card youtube-lookup-card">
           <q-card-section><div class="text-overline text-primary">Tap a word</div><div class="text-h6">即時查詞</div><div v-if="lookupBusy" class="text-caption text-grey-5 q-mt-md">本機模型查詢中…</div><template v-else-if="lookupResult"><div class="youtube-lookup-term q-mt-md">{{ lookupResult.term }}</div><div class="text-caption text-grey-5">{{ lookupResult.ipa }}</div><div class="youtube-lookup-meaning q-mt-sm">{{ lookupResult.meaning }}</div><div class="text-caption q-mt-md">{{ lookupResult.example }}</div><div class="text-caption text-grey-5 q-mt-xs">{{ lookupResult.exampleTranslation }}</div><q-btn flat dense color="primary" class="q-mt-md" label="學這個字" :loading="savingWord" @click="learnWord" /></template><div v-else class="text-body2 text-grey-5 q-mt-md">點逐字稿中的英文單字，查看意思與例句。</div></q-card-section>
         </q-card>
-        <q-card flat class="lexicon-card youtube-video-card q-mt-md"><q-card-section><div class="row items-center justify-between"><div><div class="text-overline text-primary">Your video</div><div class="text-subtitle1">影片進度</div></div><q-btn flat dense :icon="currentVideo?.favorite ? 'bookmark' : 'bookmark_border'" :label="currentVideo?.favorite ? '已收藏' : '收藏影片'" @click="toggleFavoriteVideo" /></div><q-linear-progress class="q-mt-md" rounded size="7px" color="primary" track-color="grey-8" :value="videoProgress / 100" /><div class="row justify-between text-caption text-grey-5 q-mt-sm"><span>{{ videoProgress }}% 已看</span><span>{{ timestamp(positionMs) }}</span></div></q-card-section></q-card>
-        <q-card flat class="lexicon-card youtube-method-card q-mt-md"><q-card-section><div class="text-overline text-primary">Learning loop</div><div class="text-subtitle1">看懂，再變成自己的句子</div><div class="text-body2 text-grey-5 q-mt-sm">先用雙語字幕理解，再隱藏中文重聽；遇到真正想用的句子，就加入「我的表達」。</div><div class="youtube-loop-steps q-mt-lg"><span>理解</span><span>重播</span><span>收藏</span><span>複習</span></div></q-card-section></q-card>
+        <q-card flat class="unus-card youtube-video-card q-mt-md"><q-card-section><div class="row items-center justify-between"><div><div class="text-overline text-primary">Your video</div><div class="text-subtitle1">影片進度</div></div><q-btn flat dense :icon="currentVideo?.favorite ? 'bookmark' : 'bookmark_border'" :label="currentVideo?.favorite ? '已收藏' : '收藏影片'" @click="toggleFavoriteVideo" /></div><q-linear-progress class="q-mt-md" rounded size="7px" color="primary" track-color="grey-8" :value="videoProgress / 100" /><div class="row justify-between text-caption text-grey-5 q-mt-sm"><span>{{ videoProgress }}% 已看</span><span>{{ timestamp(positionMs) }}</span></div></q-card-section></q-card>
+        <q-card flat class="unus-card youtube-method-card q-mt-md"><q-card-section><div class="text-overline text-primary">Learning loop</div><div class="text-subtitle1">看懂，再變成自己的句子</div><div class="text-body2 text-grey-5 q-mt-sm">先用雙語字幕理解，再隱藏中文重聽；遇到真正想用的句子，就加入「我的表達」。</div><div class="youtube-loop-steps q-mt-lg"><span>理解</span><span>重播</span><span>收藏</span><span>複習</span></div></q-card-section></q-card>
       </aside>
     </div>
     <div v-if="status" class="q-mt-md youtube-status">{{ status }}</div>

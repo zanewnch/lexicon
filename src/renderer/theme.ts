@@ -1,8 +1,8 @@
 export type ThemeMode = 'dark' | 'light' | 'system'
 
-const THEME_CHANNEL_NAME = 'lexicon-theme'
+const THEME_CHANNEL_NAME = 'unus-theme'
 const DEFAULT_THEME: ThemeMode = 'dark'
-export const THEME_CHANGE_EVENT = 'lexicon:theme-change'
+export const THEME_CHANGE_EVENT = 'unus:theme-change'
 
 let themeChannel: BroadcastChannel | undefined
 let systemThemeQuery: MediaQueryList | undefined

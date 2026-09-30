@@ -6,7 +6,7 @@ import { LearningStore } from './learningStore'
 
 const directories: string[] = []
 function createStore(options?: ConstructorParameters<typeof LearningStore>[1]): LearningStore {
-  const directory = mkdtempSync(join(tmpdir(), 'lexicon-learning-'))
+  const directory = mkdtempSync(join(tmpdir(), 'unus-learning-'))
   directories.push(directory)
   return new LearningStore(directory, options)
 }

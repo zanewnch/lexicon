@@ -160,10 +160,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="lexicon-popup">
+  <div class="unus-popup">
     <header class="popup-header">
       <div>
-        <div class="popup-product">LEXICON</div>
+        <div class="popup-product">UNUS</div>
         <h1 class="popup-title">{{ labels.title }}</h1>
       </div>
       <q-btn class="popup-close" flat round dense icon="close" aria-label="關閉" @click="close" />
@@ -180,7 +180,7 @@ onUnmounted(() => {
 
     <div v-if="status" class="popup-status">{{ status }}</div>
 
-    <q-card v-if="lookup" flat class="lexicon-card lookup-result q-mt-md">
+    <q-card v-if="lookup" flat class="unus-card lookup-result q-mt-md">
       <q-card-section class="row justify-between items-start">
         <div>
           <div class="text-h4 lookup-term">{{ lookup.term }}</div>
@@ -200,7 +200,7 @@ onUnmounted(() => {
       </q-card-section>
     </q-card>
 
-    <q-card v-else-if="result" flat class="lexicon-card q-mt-md">
+    <q-card v-else-if="result" flat class="unus-card q-mt-md">
       <q-card-section class="row justify-between items-center">
         <q-badge color="positive" :label="labels.targetLanguage" />
         <div class="q-gutter-xs">
@@ -208,7 +208,7 @@ onUnmounted(() => {
           <q-btn flat dense color="primary" :loading="savingLearning" :disable="learned" :label="learned ? '已加入學習' : '學這句'" @click="learnThis" />
         </div>
       </q-card-section>
-      <q-card-section class="lexicon-result">{{ result }}</q-card-section>
+      <q-card-section class="unus-result">{{ result }}</q-card-section>
     </q-card>
   </div>
 </template>

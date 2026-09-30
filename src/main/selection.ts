@@ -51,7 +51,7 @@ export async function captureSelectedText(): Promise<string | null> {
   if (process.platform !== 'win32' && process.platform !== 'darwin') return null
 
   const originalClipboard = clipboard.readText()
-  const sentinel = `__lexicon_selection_${Date.now()}_${Math.random().toString(36).slice(2)}__`
+  const sentinel = `__unus_selection_${Date.now()}_${Math.random().toString(36).slice(2)}__`
 
   try {
     clipboard.writeText(sentinel)

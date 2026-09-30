@@ -37,7 +37,7 @@ export default defineContentScript({
     function ensureModeStyle(): HTMLStyleElement {
       if (modeStyle?.isConnected) return modeStyle
       modeStyle = document.createElement('style')
-      modeStyle.id = 'lexicon-youtube-caption-mode'
+      modeStyle.id = 'unus-youtube-caption-mode'
       document.head.append(modeStyle)
       return modeStyle
     }
@@ -57,7 +57,7 @@ export default defineContentScript({
       const player = document.querySelector('.html5-video-player')
       if (!player) return undefined
       overlay = document.createElement('div')
-      overlay.id = 'lexicon-youtube-translation'
+      overlay.id = 'unus-youtube-translation'
       Object.assign(overlay.style, {
         position: 'absolute', left: '5%', right: '5%', bottom: '7%', zIndex: '2147483647', color: '#dbeafe',
         textAlign: 'center', fontSize: 'clamp(18px, 2.2vw, 30px)', fontWeight: '600', textShadow: '0 2px 5px #000',

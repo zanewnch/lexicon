@@ -14,7 +14,7 @@ afterAll(async () => {
 })
 
 test('imports a consistent SQLite snapshot and writable investment files without altering the source', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'lexicon-investment-import-'))
+  const root = await mkdtemp(join(tmpdir(), 'unus-investment-import-'))
   temporaryDirectories.push(root)
   const source = join(root, 'legacy')
   const backend = join(source, 'backend')
@@ -49,7 +49,7 @@ test('imports a consistent SQLite snapshot and writable investment files without
 })
 
 test('backs up the investment database and user files for restore', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'lexicon-investment-backup-'))
+  const root = await mkdtemp(join(tmpdir(), 'unus-investment-backup-'))
   temporaryDirectories.push(root)
   process.env.LEXICON_TEST_USER_DATA = root
   const data = join(root, 'investment')

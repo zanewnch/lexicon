@@ -88,31 +88,31 @@ onUnmounted(() => { document.removeEventListener('keydown', focusSourceOnEnter);
 
 <template>
   <q-layout view="hHh Lpr fFf">
-    <q-drawer v-model="drawerOpen" :width="248" :mini-width="76" :mini="!drawerOpen" bordered class="lexicon-drawer">
+    <q-drawer v-model="drawerOpen" :width="248" :mini-width="76" :mini="!drawerOpen" bordered class="unus-drawer">
       <q-list padding>
-        <q-item class="lexicon-brand-row q-mb-xl"><q-item-section avatar><div class="lexicon-brand">U</div></q-item-section><q-item-section><q-item-label class="lexicon-brand-name">Unus</q-item-label><q-item-label caption>Local workspace</q-item-label></q-item-section></q-item>
-        <div class="lexicon-nav-label">工作區</div>
+        <q-item class="unus-brand-row q-mb-xl"><q-item-section avatar><div class="unus-brand">U</div></q-item-section><q-item-section><q-item-label class="unus-brand-name">Unus</q-item-label><q-item-label caption>Local workspace</q-item-label></q-item-section></q-item>
+        <div class="unus-nav-label">工作區</div>
         <q-item clickable :active="view === 'translate'" @click="view = 'translate'"><q-item-section avatar><q-icon name="translate" /></q-item-section><q-item-section>翻譯</q-item-section></q-item>
         <q-item clickable :active="view === 'news'" @click="view = 'news'"><q-item-section avatar><q-icon name="newspaper" /></q-item-section><q-item-section>新聞</q-item-section></q-item>
         <q-item clickable :active="view === 'learn'" @click="view = 'learn'"><q-item-section avatar><q-icon :name="learningComplete ? 'check_circle' : 'school'" :color="learningComplete ? 'positive' : undefined" /></q-item-section><q-item-section>今日學習</q-item-section></q-item>
         <q-item clickable :active="view === 'youtube'" @click="view = 'youtube'"><q-item-section avatar><q-icon name="smart_display" /></q-item-section><q-item-section>YouTube</q-item-section></q-item>
-        <div class="lexicon-nav-label q-mt-md">英文學習資源</div>
+        <div class="unus-nav-label q-mt-md">英文學習資源</div>
         <q-item clickable :active="view === 'ielts'" @click="view = 'ielts'"><q-item-section avatar><q-icon name="record_voice_over" /></q-item-section><q-item-section>雅思練習</q-item-section></q-item>
         <q-item clickable :active="view === 'history'" @click="view = 'history'"><q-item-section avatar><q-icon name="history" /></q-item-section><q-item-section>搜尋紀錄</q-item-section></q-item>
-        <div class="lexicon-nav-label q-mt-md">投資</div>
+        <div class="unus-nav-label q-mt-md">投資</div>
         <q-item clickable @click="openInvestment(false)"><q-item-section avatar><q-icon name="candlestick_chart" /></q-item-section><q-item-section>投資工作區</q-item-section></q-item>
         <q-item clickable @click="openInvestment(true)"><q-item-section avatar><q-icon name="open_in_browser" /></q-item-section><q-item-section>在瀏覽器開啟</q-item-section></q-item>
       </q-list>
-      <div class="absolute-bottom q-pa-md lexicon-drawer-footer"><q-item clickable :active="view === 'settings'" @click="view = 'settings'"><q-item-section avatar><q-icon name="settings" /></q-item-section><q-item-section>設定</q-item-section></q-item></div>
+      <div class="absolute-bottom q-pa-md unus-drawer-footer"><q-item clickable :active="view === 'settings'" @click="view = 'settings'"><q-item-section avatar><q-icon name="settings" /></q-item-section><q-item-section>設定</q-item-section></q-item></div>
     </q-drawer>
     <q-page-container>
       <q-banner v-if="investmentMessage || investmentUrl" dense class="bg-grey-9 text-white">{{ investmentMessage || `投資網站：${investmentUrl}` }}</q-banner>
-      <q-page class="lexicon-page" :class="{ 'lexicon-page-wide': view === 'ielts' }">
+      <q-page class="unus-page" :class="{ 'unus-page-wide': view === 'ielts' }">
         <template v-if="view === 'translate'">
-          <div class="lexicon-hero row items-start justify-between q-col-gutter-md"><div><div class="text-overline text-primary">Unus · {{ hotkeyLabel }}</div><div class="text-h3">{{ labels.title }}</div><div class="text-body1 lexicon-lead q-mt-sm">{{ direction === 'zh-to-en' ? '輸入繁體中文，使用本機 Gemma 4 翻譯成自然英文。' : '輸入英文，使用本機 Gemma 4 翻譯成自然繁體中文。' }}</div></div><q-badge class="lexicon-local-badge" outline><span></span>Local private</q-badge></div>
-          <q-form class="lexicon-translation-panel q-mt-xl" @submit="translate"><div class="lexicon-panel-heading"><span>{{ labels.sourceLanguage }}內容</span><span>{{ source.length }} 字元</span></div><q-input ref="sourceInput" v-model="source" borderless type="textarea" autogrow :placeholder="labels.placeholder" :disable="busy" @keydown.enter.exact.prevent="translate" /><div class="lexicon-panel-footer"><span class="lexicon-muted">Enter 翻譯 · Shift+Enter 換行</span><q-btn unelevated color="primary" :loading="busy" label="翻譯" type="submit" /></div></q-form>
-          <div v-if="status" class="q-mt-md" :class="{ 'lexicon-status-error': !busy }">{{ status }}</div>
-          <q-card v-if="result" flat class="lexicon-card q-mt-lg"><q-card-section class="row justify-between items-center"><q-badge color="positive" :label="labels.targetLanguage" /><div class="q-gutter-sm"><q-btn flat dense color="primary" label="複製" @click="copy" /><q-btn flat dense color="primary" :loading="savingLearning" label="學這句" @click="learnThis" /></div></q-card-section><q-card-section class="lexicon-result">{{ result }}</q-card-section></q-card>
+          <div class="unus-hero row items-start justify-between q-col-gutter-md"><div><div class="text-overline text-primary">Unus · {{ hotkeyLabel }}</div><div class="text-h3">{{ labels.title }}</div><div class="text-body1 unus-lead q-mt-sm">{{ direction === 'zh-to-en' ? '輸入繁體中文，使用本機 Gemma 4 翻譯成自然英文。' : '輸入英文，使用本機 Gemma 4 翻譯成自然繁體中文。' }}</div></div><q-badge class="unus-local-badge" outline><span></span>Local private</q-badge></div>
+          <q-form class="unus-translation-panel q-mt-xl" @submit="translate"><div class="unus-panel-heading"><span>{{ labels.sourceLanguage }}內容</span><span>{{ source.length }} 字元</span></div><q-input ref="sourceInput" v-model="source" borderless type="textarea" autogrow :placeholder="labels.placeholder" :disable="busy" @keydown.enter.exact.prevent="translate" /><div class="unus-panel-footer"><span class="unus-muted">Enter 翻譯 · Shift+Enter 換行</span><q-btn unelevated color="primary" :loading="busy" label="翻譯" type="submit" /></div></q-form>
+          <div v-if="status" class="q-mt-md" :class="{ 'unus-status-error': !busy }">{{ status }}</div>
+          <q-card v-if="result" flat class="unus-card q-mt-lg"><q-card-section class="row justify-between items-center"><q-badge color="positive" :label="labels.targetLanguage" /><div class="q-gutter-sm"><q-btn flat dense color="primary" label="複製" @click="copy" /><q-btn flat dense color="primary" :loading="savingLearning" label="學這句" @click="learnThis" /></div></q-card-section><q-card-section class="unus-result">{{ result }}</q-card-section></q-card>
         </template>
         <NewsWorkspace v-else-if="view === 'news'" />
         <LearningWorkspace v-else-if="view === 'learn'" />

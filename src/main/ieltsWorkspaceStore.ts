@@ -89,7 +89,7 @@ export class IeltsWorkspaceStore {
 
   async backupTo(directory: string): Promise<string> {
     await mkdir(directory, { recursive: true })
-    const backupPath = join(directory, `lexicon-backup-${formatBackupTimestamp(new Date())}.sqlite`)
+    const backupPath = join(directory, `unus-backup-${formatBackupTimestamp(new Date())}.sqlite`)
     await backup(this.database, backupPath)
     return backupPath
   }

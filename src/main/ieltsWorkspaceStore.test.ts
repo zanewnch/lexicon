@@ -6,7 +6,7 @@ import { IeltsWorkspaceStore } from './ieltsWorkspaceStore'
 
 describe('IeltsWorkspaceStore', () => {
   it('creates a complete SQLite backup file', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'lexicon-backup-test-'))
+    const directory = await mkdtemp(join(tmpdir(), 'unus-backup-test-'))
     const store = new IeltsWorkspaceStore(directory)
 
     try {

@@ -62,7 +62,7 @@ onMounted(() => void search())
     <div class="col-auto"><q-btn unelevated color="primary" icon="search" label="搜尋" type="submit" :loading="loading" /></div>
   </q-form>
   <div class="text-caption text-grey-6 q-mt-sm">新聞由 Google News RSS 提供；摘要僅根據標題與來源提供的摘要產生。</div>
-  <div v-if="status" class="lexicon-status-error q-mt-md">{{ status }}</div>
+  <div v-if="status" class="unus-status-error q-mt-md">{{ status }}</div>
 
   <div v-if="hasResults" class="row q-col-gutter-lg q-mt-sm">
     <div class="col-12 col-md-7">
@@ -76,7 +76,7 @@ onMounted(() => void search())
       </q-list>
     </div>
     <div class="col-12 col-md-5">
-      <q-card v-if="selected" flat class="lexicon-card">
+      <q-card v-if="selected" flat class="unus-card">
         <q-card-section>
           <div class="text-h6">{{ selected.title }}</div>
           <div class="text-caption text-grey-5 q-mt-sm">{{ selected.source }} · {{ formatPublishedAt(selected.publishedAt) }}</div>
@@ -88,7 +88,7 @@ onMounted(() => void search())
         </q-card-actions>
         <q-card-section v-if="summary" class="news-summary"><div class="text-overline text-primary">Gemma 4 摘要</div><div class="q-mt-xs" style="white-space: pre-wrap">{{ summary }}</div></q-card-section>
       </q-card>
-      <q-card v-else flat class="lexicon-card"><q-card-section class="text-grey-5">選一則新聞即可閱讀來源摘要、開啟原文或產生本機 AI 摘要。</q-card-section></q-card>
+      <q-card v-else flat class="unus-card"><q-card-section class="text-grey-5">選一則新聞即可閱讀來源摘要、開啟原文或產生本機 AI 摘要。</q-card-section></q-card>
     </div>
   </div>
 </template>

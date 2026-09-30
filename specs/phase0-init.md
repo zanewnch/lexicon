@@ -3,7 +3,7 @@
 ## 建立專案
 
 ```bash
-npm create @quick-start/electron@latest lexicon -- --template=vanilla-ts
+npm create @quick-start/electron@latest unus -- --template=vanilla-ts
 ```
 
 使用 **electron-vite** + TypeScript。實際目錄結構以 CLI 產生結果為準。
