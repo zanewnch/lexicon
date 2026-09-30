@@ -1,0 +1,181 @@
+<script setup lang="ts">
+import { englishApi } from '@/api/english'
+import { EnglishBadge, EnglishBanner, EnglishButton, EnglishCard, EnglishChoice, EnglishInput, EnglishItem, EnglishItemLabel, EnglishItemSection, EnglishList, EnglishSection, EnglishSelect, EnglishSeparator } from '../ui'
+
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import materials from './ielts/data/speaking-topics.json'
+
+type SpeakingTopic = {
+  id: string
+  part: 'part_1' | 'part_2_3'
+  part_label: string
+  category: string
+  category_label: string
+  topic_name: string
+  question_count: number
+  sample_question: string
+  recent_exam_count: number
+  learner_count: string
+  time_tag: string
+  is_new: boolean
+  priority: string
+}
+type StudyDirection = { id: number; title: string; focus: string; status: 'planning' | 'active' | 'done' }
+
+const topics = materials.topics as SpeakingTopic[]
+const priorities = ['New and high frequency', 'High frequency', 'New topic', 'Regular practice']
+const query = ref('')
+const part = ref('all')
+const category = ref('all')
+const priority = ref('all')
+const newOnly = ref(false)
+const selectedId = ref(topics[0]?.id ?? '')
+const notes = ref('')
+const directionTitle = ref('')
+const directionFocus = ref('')
+const directions = ref<StudyDirection[]>([])
+const workspaceLoaded = ref(false)
+const learningTopic = ref(false)
+const learningStatus = ref('')
+const writingTaskType = ref<'task-1' | 'task-2'>('task-2')
+const writingPrompt = ref('')
+const writingDraft = ref('')
+const writingResult = ref('')
+const writingStatus = ref('')
+const writingAction = ref<'outline' | 'feedback' | 'sample' | null>(null)
+const writingReferenceSource = ref(false)
+const translationInput = ref('')
+const translationResult = ref('')
+const translating = ref(false)
+let notesTimer: number | undefined
+let directionsTimer: number | undefined
+
+const categories = computed(() => [...new Map(topics.map((topic) => [topic.category, topic.category_label])).entries()].sort((a, b) => a[1].localeCompare(b[1])))
+const filteredTopics = computed(() => {
+  const needle = query.value.trim().toLowerCase()
+  return topics.filter((topic) => (!needle || [topic.topic_name, topic.sample_question, topic.category_label].some((value) => value.toLowerCase().includes(needle)))
+    && (part.value === 'all' || topic.part === part.value)
+    && (category.value === 'all' || topic.category === category.value)
+    && (priority.value === 'all' || topic.priority === priority.value)
+    && (!newOnly.value || topic.is_new))
+})
+const selectedTopic = computed(() => filteredTopics.value.find((topic) => topic.id === selectedId.value) ?? filteredTopics.value[0])
+const partOneCount = computed(() => filteredTopics.value.filter((topic) => topic.part === 'part_1').length)
+const partTwoCount = computed(() => filteredTopics.value.filter((topic) => topic.part === 'part_2_3').length)
+const newCount = computed(() => filteredTopics.value.filter((topic) => topic.is_new).length)
+const partOptions = [{ label: '所有 Part', value: 'all' }, { label: 'Part 1', value: 'part_1' }, { label: 'Part 2/3', value: 'part_2_3' }]
+const categoryOptions = computed(() => [{ label: '所有分類', value: 'all' }, ...categories.value.map(([value, label]) => ({ label, value }))])
+const priorityOptions = [{ label: '所有優先度', value: 'all' }, ...priorities.filter((value) => topics.some((topic) => topic.priority === value)).map((value) => ({ label: value, value }))]
+
+watch(filteredTopics, (visible) => { if (!visible.some((topic) => topic.id === selectedId.value)) selectedId.value = visible[0]?.id ?? '' })
+watch(notes, (value) => {
+  if (!workspaceLoaded.value) return
+  if (notesTimer) clearTimeout(notesTimer)
+  notesTimer = window.setTimeout(() => void englishApi.saveIeltsNotes(value), 400)
+})
+watch(directions, (value) => {
+  if (!workspaceLoaded.value) return
+  if (directionsTimer) clearTimeout(directionsTimer)
+  directionsTimer = window.setTimeout(() => void englishApi.saveIeltsDirections(value), 400)
+}, { deep: true })
+
+onMounted(async () => {
+  const workspace = await englishApi.loadIeltsWorkspace({
+    notes: readStorage('lexicon.ielts.notes'),
+    directions: readDirections()
+  })
+  notes.value = workspace.notes
+  directions.value = workspace.directions
+  workspaceLoaded.value = true
+})
+onBeforeUnmount(() => {
+  if (notesTimer) clearTimeout(notesTimer)
+  if (directionsTimer) clearTimeout(directionsTimer)
+})
+
+function addDirection(): void {
+  const title = directionTitle.value.trim()
+  const focus = directionFocus.value.trim()
+  if (!title && !focus) return
+  directions.value.unshift({ id: Date.now(), title: title || '未命名方向', focus: focus || '先記下想法，之後再補上具體練習方式。', status: 'planning' })
+  directionTitle.value = ''
+  directionFocus.value = ''
+}
+function removeDirection(id: number): void { directions.value = directions.value.filter((direction) => direction.id !== id) }
+function statusLabel(status: StudyDirection['status']): string { return status === 'active' ? '進行中' : status === 'done' ? '已完成' : '規劃中' }
+function readDirections(): StudyDirection[] {
+  try { const stored = JSON.parse(readStorage('lexicon.ielts.directions')) as unknown; if (Array.isArray(stored)) return stored as StudyDirection[] } catch { /* fall through */ }
+  return [
+    { id: 1, title: '建立 IELTS Speaking 自學節奏', focus: '每天固定選 1 個題目，先寫關鍵字，再錄音回答，最後補強句型和詞彙。', status: 'active' },
+    { id: 2, title: '整理常用答案素材', focus: '把人物、地點、經驗、喜好、困難、改變等素材做成可重複使用的答案庫。', status: 'planning' },
+    { id: 3, title: '追蹤弱點', focus: '每次練習後只記 1 到 2 個最需要改的地方，例如停頓、時態、連接詞或發音。', status: 'planning' }
+  ]
+}
+function readStorage(key: string): string { try { return localStorage.getItem(key) ?? '' } catch { return '' } }
+async function learnSelectedQuestion(): Promise<void> {
+  if (!selectedTopic.value) return
+  learningTopic.value = true; learningStatus.value = ''
+  try {
+    const translation = await englishApi.translate(selectedTopic.value.sample_question)
+    if (!translation.ok || translation.kind !== 'translation') throw new Error(translation.ok ? '此題無法建立學習項目' : translation.message)
+    await englishApi.createLearningFromRecord(translation.translationRecordId)
+    learningStatus.value = '題目已加入我的表達（+5 XP），可到「今日學習」練習。'
+  } catch (error) { learningStatus.value = error instanceof Error ? error.message : '建立學習項目失敗' }
+  finally { learningTopic.value = false }
+}
+async function runWritingAction(action: 'outline' | 'feedback' | 'sample'): Promise<void> {
+  writingAction.value = action
+  writingStatus.value = ''
+  writingReferenceSource.value = false
+  try {
+    writingResult.value = await englishApi.generateIeltsWriting(action, writingTaskType.value, writingPrompt.value, writingDraft.value)
+    writingReferenceSource.value = action === 'sample'
+  } catch (error) {
+    writingStatus.value = error instanceof Error ? error.message : 'AI 寫作協助失敗，請重試'
+  } finally {
+    writingAction.value = null
+  }
+}
+async function translateWritingText(): Promise<void> {
+  if (!translationInput.value.trim()) return
+  translating.value = true
+  translationResult.value = ''
+  try {
+    const result = await englishApi.translate(translationInput.value)
+    if (!result.ok || result.kind !== 'translation') throw new Error(result.ok ? '無法翻譯這段內容' : result.message)
+    translationResult.value = result.text
+  } catch (error) {
+    translationResult.value = error instanceof Error ? error.message : '翻譯失敗，請重試'
+  } finally {
+    translating.value = false
+  }
+}
+</script>
+
+<template>
+  <div class="english-ui__text-overline english-ui__text-primary">IELTS · Personal study workspace</div>
+  <div class="english-ui__row english-ui__items-start english-ui__justify-between english-ui__q-col-gutter-md"><div><div class="english-ui__text-h3">IELTS 練習中心</div><div class="english-ui__text-body1 english-ui__text-grey-5 english-ui__q-mt-sm">從近期 Speaking 題目開始，也可在下方完成 Writing、翻譯與範文練習。</div></div><EnglishBadge color="positive" outline label="106 Speaking topics" /></div>
+
+  <div class="english-ui__row english-ui__q-col-gutter-sm english-ui__q-mt-lg">
+    <div v-for="stat in [{ label: '目前題目', value: filteredTopics.length }, { label: 'Part 1', value: partOneCount }, { label: 'Part 2/3', value: partTwoCount }, { label: '新題', value: newCount }]" :key="stat.label" class="english-ui__col-6 english-ui__col-sm-3"><EnglishCard flat class="english-card"><EnglishSection><div class="english-ui__text-caption english-ui__text-grey-5">{{ stat.label }}</div><div class="english-ui__text-h5 english-ui__q-mt-xs">{{ stat.value }}</div></EnglishSection></EnglishCard></div>
+  </div>
+
+  <div class="english-ui__row english-ui__q-col-gutter-md english-ui__q-mt-md">
+    <div class="english-ui__col-12 english-ui__col-md-5"><EnglishCard flat class="english-card"><EnglishSection class="english-ui__q-gutter-sm"><EnglishInput v-model="query" dense outlined label="搜尋題目" placeholder="Topic、question、category" clearable /><div class="english-ui__row english-ui__q-col-gutter-sm"><div class="english-ui__col-6"><EnglishSelect v-model="part" dense outlined emit-value map-options :options="partOptions" label="Part" /></div><div class="english-ui__col-6"><EnglishSelect v-model="category" dense outlined emit-value map-options :options="categoryOptions" label="分類" /></div><div class="english-ui__col-12"><EnglishSelect v-model="priority" dense outlined emit-value map-options :options="priorityOptions" label="優先度" /></div></div><EnglishChoice v-model="newOnly" dense label="只看新題" color="primary" /></EnglishSection><EnglishSeparator /><EnglishList class="ielts-topic-list" separator><EnglishItem v-for="topic in filteredTopics" :key="topic.id" clickable :active="topic.id === selectedTopic?.id" active-class="ielts-topic-active" @click="selectedId = topic.id"><EnglishItemSection><EnglishItemLabel caption>{{ topic.part_label }} · {{ topic.category_label }}</EnglishItemLabel><EnglishItemLabel>{{ topic.topic_name }}</EnglishItemLabel><EnglishItemLabel caption>{{ topic.is_new ? 'New · ' : '' }}{{ topic.priority }}</EnglishItemLabel></EnglishItemSection></EnglishItem><EnglishItem v-if="!filteredTopics.length"><EnglishItemSection class="english-ui__text-grey-5">沒有符合目前篩選條件的題目。</EnglishItemSection></EnglishItem></EnglishList></EnglishCard></div>
+    <div class="english-ui__col-12 english-ui__col-md-7"><EnglishCard flat class="english-card ielts-detail-card"><EnglishSection v-if="selectedTopic"><div class="english-ui__text-overline english-ui__text-primary">{{ selectedTopic.part_label }} · {{ selectedTopic.category_label }}</div><div class="english-ui__text-h4 english-ui__q-mt-xs">{{ selectedTopic.topic_name }}</div><div class="english-ui__q-gutter-xs english-ui__q-mt-sm"><EnglishBadge outline color="primary" :label="selectedTopic.priority" /><EnglishBadge v-if="selectedTopic.is_new" color="positive" outline label="New topic" /></div><div class="english-ui__text-overline english-ui__text-grey-5 english-ui__q-mt-xl">Sample question</div><div class="english-ui__text-h6 english-ui__q-mt-sm ielts-question">{{ selectedTopic.sample_question }}</div><EnglishButton class="english-ui__q-mt-md" flat dense color="primary" :loading="learningTopic" label="翻譯並學這句" @click="learnSelectedQuestion" /><div v-if="learningStatus" class="english-ui__text-caption english-ui__q-mt-sm" :class="learningStatus.includes('已加入') ? 'english-ui__text-positive' : 'english-ui__text-negative'">{{ learningStatus }}</div><div class="english-ui__row english-ui__q-col-gutter-md english-ui__q-mt-lg"><div class="english-ui__col-6"><div class="english-ui__text-caption english-ui__text-grey-5">Recent exam reports</div><div>{{ selectedTopic.recent_exam_count }}</div></div><div class="english-ui__col-6"><div class="english-ui__text-caption english-ui__text-grey-5">Questions</div><div>{{ selectedTopic.question_count }}</div></div><div class="english-ui__col-6"><div class="english-ui__text-caption english-ui__text-grey-5">Season</div><div>{{ selectedTopic.time_tag || 'Unknown' }}</div></div><div class="english-ui__col-6"><div class="english-ui__text-caption english-ui__text-grey-5">Learners</div><div>{{ selectedTopic.learner_count || '—' }}</div></div></div></EnglishSection><EnglishSection v-else class="english-ui__text-grey-5">沒有符合目前篩選條件的題目。</EnglishSection></EnglishCard></div>
+  </div>
+
+  <div class="english-ui__text-overline english-ui__text-primary english-ui__q-mt-xl">IELTS Writing · AI studio</div>
+  <div class="english-ui__text-h5 english-ui__q-mt-xs">從題目到草稿，建立可重複使用的寫作流程</div>
+  <div class="english-ui__text-body2 english-ui__text-grey-5 english-ui__q-mt-sm">由本機模型生成原創架構、回饋與參考答案；它不是官方題解，也不保證分數。</div>
+  <div class="english-ui__row english-ui__q-col-gutter-md english-ui__q-mt-md">
+    <div class="english-ui__col-12 english-ui__col-md-7"><EnglishCard flat class="english-card"><EnglishSection class="english-ui__q-gutter-md"><EnglishChoice v-model="writingTaskType" inline color="primary" type="radio" :options="[{ label: 'Task 1', value: 'task-1' }, { label: 'Task 2', value: 'task-2' }]" /><EnglishInput v-model="writingPrompt" outlined type="textarea" autogrow label="寫作題目" placeholder="貼上 IELTS Writing 題目…" /><EnglishInput v-model="writingDraft" outlined type="textarea" autogrow label="我的英文草稿（批改時必填）" placeholder="先自己寫，再請 AI 給你最重要的改善方向。" /><div class="english-ui__row english-ui__q-gutter-sm"><EnglishButton color="primary" :loading="writingAction === 'outline'" label="設計寫作架構" @click="runWritingAction('outline')" /><EnglishButton outline color="primary" :loading="writingAction === 'feedback'" label="批改我的草稿" @click="runWritingAction('feedback')" /><EnglishButton flat color="primary" :loading="writingAction === 'sample'" label="產生原創參考範文" @click="runWritingAction('sample')" /></div><div v-if="writingStatus" class="english-ui__text-negative english-ui__text-caption">{{ writingStatus }}</div></EnglishSection></EnglishCard></div>
+    <div class="english-ui__col-12 english-ui__col-md-5"><EnglishCard flat class="english-card ielts-detail-card"><EnglishSection><div class="english-ui__text-overline english-ui__text-primary">AI 結果</div><div v-if="writingResult" class="ielts-writing-result english-ui__q-mt-md">{{ writingResult }}</div><div v-else class="english-ui__text-grey-5 english-ui__q-mt-md">輸入題目後，可先取得架構；完成草稿後再請 AI 聚焦改善。</div><EnglishBanner v-if="writingReferenceSource" rounded class="english-ui__q-mt-md english-ui__bg-blue-1 english-ui__text-dark"><div class="english-ui__text-caption english-ui__text-weight-medium">範文來源</div><div class="english-ui__text-caption english-ui__q-mt-xs">本文由 Unus 本機 AI 依你的題目原創生成，並非摘錄自官方或第三方範文。題型與練習格式可對照下列官方資源。</div><div class="english-ui__q-gutter-sm english-ui__q-mt-sm"><EnglishButton flat dense type="a" target="_blank" href="https://takeielts.britishcouncil.org/take-ielts/prepare/free-ielts-english-practice-tests" label="British Council 練習題" /><EnglishButton flat dense type="a" target="_blank" href="https://ielts.idp.com/about/ielts-practice-materials" label="IDP 練習素材" /></div></EnglishBanner></EnglishSection></EnglishCard></div>
+  </div>
+
+  <EnglishCard flat class="english-card english-ui__q-mt-md"><EnglishSection><div class="english-ui__text-h6">寫作翻譯</div><div class="english-ui__text-caption english-ui__text-grey-5 english-ui__q-mt-xs">貼上中文想法或英文句子，快速轉成另一種語言；結果可再貼回草稿調整。</div><EnglishInput v-model="translationInput" class="english-ui__q-mt-md" outlined type="textarea" autogrow label="要翻譯的文字" placeholder="例如：我認為政府應該優先投資大眾運輸。" /><EnglishButton class="english-ui__q-mt-sm" outline color="primary" :disable="!translationInput.trim()" :loading="translating" label="翻譯" @click="translateWritingText" /><div v-if="translationResult" class="ielts-writing-result english-ui__q-mt-md">{{ translationResult }}</div></EnglishSection></EnglishCard>
+
+  <div class="english-ui__text-overline english-ui__text-primary english-ui__q-mt-xl">Self-study workspace</div><div class="english-ui__text-h5 english-ui__q-mt-xs">設計方向</div>
+  <div class="english-ui__row english-ui__q-col-gutter-md english-ui__q-mt-md"><div class="english-ui__col-12 english-ui__col-md-7"><EnglishCard flat class="english-card"><EnglishSection><EnglishInput v-model="notes" outlined type="textarea" autogrow label="即時紀錄" placeholder="想練什麼、卡在哪裡、今天的目標…" /><div class="english-ui__text-caption english-ui__text-grey-5 english-ui__q-mt-sm">會自動儲存在這台電腦。</div></EnglishSection></EnglishCard></div><div class="english-ui__col-12 english-ui__col-md-5"><EnglishCard flat class="english-card"><EnglishSection class="english-ui__q-gutter-md"><EnglishInput v-model="directionTitle" dense outlined label="方向名稱" placeholder="例如：Part 2 故事素材" /><EnglishInput v-model="directionFocus" outlined type="textarea" autogrow label="練習重點" placeholder="下一步要補什麼？" /><EnglishButton color="primary" label="加入方向" @click="addDirection" /></EnglishSection></EnglishCard></div></div>
+  <EnglishCard v-for="direction in directions" :key="direction.id" flat class="english-card english-ui__q-mt-sm"><EnglishSection class="english-ui__row english-ui__justify-between english-ui__no-wrap english-ui__q-gutter-md"><div><EnglishBadge :color="direction.status === 'active' ? 'positive' : 'primary'" outline :label="statusLabel(direction.status)" /><div class="english-ui__text-subtitle1 english-ui__q-mt-sm">{{ direction.title }}</div><div class="english-ui__text-body2 english-ui__text-grey-5 english-ui__q-mt-xs">{{ direction.focus }}</div></div><EnglishButton flat dense color="primary" label="刪除" @click="removeDirection(direction.id)" /></EnglishSection></EnglishCard>
+</template>

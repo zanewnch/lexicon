@@ -12,7 +12,6 @@ const HOME = 'Home'
 
 const OK = 'OK'
 const NOT_IMPL_YET = '尚未實作'
-const ROOT_PAGE_NOT_FOUND = '找不到 /pages/Home.vue 或是 /pages/Home/Layout.vue'
 
 type ComponentLoader = () => Promise<RouteComponent>
 type PageComponents = Record<string, ComponentLoader>
@@ -26,14 +25,14 @@ interface MutableRouteRecord {
   props: boolean
 }
 
-const routeStatus: Record<string, string> = {
-  Home: ROOT_PAGE_NOT_FOUND,
-}
+// The root URL is explicitly redirected by basicRoutes; it needs no Home.vue.
+const routeStatus: Record<string, string> = {}
 
 /**
  * 建立 pages 資料夾底下的 vue router 路由
  */
 export function createRoute(pageComponents: PageComponents): RouteRecordRaw[] {
+  Object.keys(routeStatus).forEach((key) => delete routeStatus[key])
   const pagesRoutes: MutableRouteRecord[] = []
 
   Object.keys(pageComponents).forEach((filePath) => {
@@ -106,8 +105,6 @@ function checkRouteStatus() {
     (accumulator, [name, status]) => {
       if (status === NOT_IMPL_YET) {
         accumulator.push(`找不到 ${name} 對應的 ${LAYOUT}.vue。`)
-      } else if (status === ROOT_PAGE_NOT_FOUND) {
-        accumulator.push(ROOT_PAGE_NOT_FOUND)
       }
       return accumulator
     },

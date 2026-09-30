@@ -1,6 +1,5 @@
-"""Constrain browser writes to the local Lexicon investment origin."""
+"""Constrain browser writes to the local Unus investment origin."""
 
-from urllib.parse import urlsplit
 import os
 
 from django.conf import settings
@@ -16,8 +15,7 @@ class LoopbackOriginMiddleware:
             origin = request.headers.get('Origin')
             if origin:
                 try:
-                    parsed = urlsplit(origin)
-                    valid = parsed.scheme == 'http' and parsed.hostname == '127.0.0.1' and parsed.port == int(os.environ['LEXICON_INVESTMENT_PORT'])
+                    valid = origin in {os.environ.get('UNUS_FRONTEND_ORIGIN'), f"http://127.0.0.1:{os.environ.get('LEXICON_INVESTMENT_PORT', '')}"}
                 except (ValueError, KeyError):
                     valid = False
                 if not valid:

@@ -11,8 +11,11 @@ from django.urls import include, path
 from django.urls import re_path
 from django.http import JsonResponse
 from .web import serve_frontend, serve_media
+from core.english import rpc as english_rpc, events as english_events
 
 urlpatterns = [
+    path('api/english/rpc/', english_rpc),
+    path('api/english/events/', english_events),
     path('api/lexicon/health/', lambda request: JsonResponse({'ok': True, 'nonce': os.environ.get('LEXICON_INVESTMENT_HEALTH_NONCE', '')})),
     path('admin/', admin.site.urls),
     path('api/', include('core.urls')),

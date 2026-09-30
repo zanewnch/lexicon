@@ -13,6 +13,7 @@ import {
 } from 'electron'
 import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { registerEnglishOperation, invokeEnglishOperation, publishEnglishEvent, startEnglishService, stopEnglishService, type EnglishContext } from './englishService'
 import { captureSelectedText } from './selection'
 import {
   downloadModel,
@@ -37,7 +38,10 @@ import { startYouTubeBridge, type YouTubeBridgeServer } from './youtubeBridge'
 import { registerMacYouTubeNativeHost } from './youtubeNativeHost'
 import { isYouTubeMessage, type YouTubeControl, type YouTubeTranscript } from '../shared/youtube'
 import { isSafeArticleUrl, searchNews } from './news'
-import { backupInvestmentData, getInvestmentStatus, openInvestmentBrowser, openInvestmentWindow, startInvestmentService, stopInvestmentService } from './investmentService'
+import { backupInvestmentData, getInvestmentStatus, openInvestmentBrowser, startInvestmentService, stopInvestmentService } from './investmentService'
+
+app.setName('Unus')
+app.setPath('userData', join(app.getPath('appData'), 'lexicon'))
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 // Command+Shift+Q is reserved by macOS for log out, so use a conflict-free
@@ -96,11 +100,13 @@ if (!gotSingleInstanceLock) {
     else showSetupWindow()
   })
 
-  app.whenReady().then(() => {
+  app.whenReady().then(async () => {
+    registerIpc()
+    await startEnglishService()
     void startInvestmentService()
     createTray()
     createWindow('popup')
-    registerIpc()
+    showMainWindow()
     youtubeBridge = startYouTubeBridge({
       translator,
       translationJobs,
@@ -132,6 +138,7 @@ if (!gotSingleInstanceLock) {
 
   app.on('will-quit', () => {
     stopInvestmentService()
+    stopEnglishService()
     globalShortcut.unregisterAll()
     void translator.dispose()
     ieltsWorkspaceStore?.close()
@@ -160,8 +167,8 @@ function createWindow(page: PageName): BrowserWindow {
   const isPopup = page === 'popup'
   const isPopupOverlay = page === 'popup-overlay'
   const window = new BrowserWindow({
-    width: isPopup ? POPUP_WIDTH : isApp ? APP_WIDTH : page === 'setup' ? 640 : 720,
-    height: isPopup ? POPUP_DEFAULT_HEIGHT : isApp ? APP_HEIGHT : page === 'setup' ? 460 : 520,
+    width: isPopup ? POPUP_WIDTH : isApp ? 1280 : page === 'setup' ? 640 : 720,
+    height: isPopup ? POPUP_DEFAULT_HEIGHT : isApp ? 850 : page === 'setup' ? 460 : 520,
     minWidth: isApp ? APP_MIN_WIDTH : undefined,
     minHeight: isApp ? APP_MIN_HEIGHT : undefined,
     show: false,
@@ -177,7 +184,7 @@ function createWindow(page: PageName): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      preload: join(__dirname, '../preload/index.cjs')
+      preload: isApp ? undefined : join(__dirname, '../preload/index.cjs')
     }
   })
 
@@ -211,7 +218,8 @@ function createWindow(page: PageName): BrowserWindow {
   if (isPopupOverlay) {
     void window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent('<!doctype html><html><head><style>html,body{margin:0;width:100%;height:100%;background:transparent}</style></head><body><script>window.addEventListener("pointerdown",()=>window.api.closePopup())</script></body></html>')}`)
   } else {
-    loadPage(window, page)
+    if (isApp) void loadUnifiedPage(window)
+    else loadPage(window, page)
   }
   windows.set(page, window)
   return window
@@ -222,11 +230,11 @@ function createTray(): void {
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='
   )
   tray = new Tray(icon)
-  tray.setToolTip('Lexicon')
+  tray.setToolTip('Unus')
   tray.setContextMenu(
     Menu.buildFromTemplate([
       {
-        label: '開啟 Lexicon',
+        label: '開啟 Unus',
         click: () => {
           if (hotkeyRegistered) {
             showMainWindow()
@@ -239,30 +247,27 @@ function createTray(): void {
         label: '下載 / 重新載入模型',
         click: () => showSetupWindow()
       },
+      { label: '在瀏覽器開啟', click: () => { void openInvestmentBrowser() } },
       { type: 'separator' },
-      { label: '結束 Lexicon', click: () => app.quit() }
+      { label: '結束 Unus', click: () => app.quit() }
     ])
   )
 }
 
 function showMainWindow(): void {
   const mainWindow = createWindow('app')
+  if (mainWindow.webContents.getURL().startsWith('data:')) void loadUnifiedPage(mainWindow)
   mainWindow.show()
   mainWindow.focus()
 }
 
 function showYouTubeTranscript(transcript: YouTubeTranscript): void {
-  const mainWindow = createWindow('app')
-  const sendTranscript = (): void => {
-    if (!mainWindow.isDestroyed()) mainWindow.webContents.send('youtube:transcript-open', transcript)
-    mainWindow.show()
-    mainWindow.focus()
-  }
-  if (mainWindow.webContents.isLoading()) mainWindow.webContents.once('did-finish-load', sendTranscript)
-  else sendTranscript()
+  publishEnglishEvent('youtube:transcript-open', transcript)
+  void showUnifiedRoute('/english/youtube')
 }
 
 function sendYouTubeEvent(channel: string, payload: unknown): void {
+  publishEnglishEvent(channel, payload)
   const mainWindow = windows.get('app')
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload)
 }
@@ -296,8 +301,8 @@ function registerHotkey(): void {
 
   if (!hotkeyRegistered) {
     new Notification({
-      title: 'Lexicon 快捷鍵無法使用',
-      body: `${formatHotkey(configuredHotkey)} 已被其他程式使用，請關閉衝突程式後重新啟動 Lexicon。`
+      title: 'Unus 快捷鍵無法使用',
+      body: `${formatHotkey(configuredHotkey)} 已被其他程式使用，請關閉衝突程式後重新啟動 Unus。`
     }).show()
   }
 }
@@ -331,14 +336,8 @@ async function handleHotkey(): Promise<void> {
 }
 
 function showYouTubeTranscriptError(message: string): void {
-  const mainWindow = createWindow('app')
-  const sendError = (): void => {
-    if (!mainWindow.isDestroyed()) mainWindow.webContents.send('youtube:transcript-error', { message })
-  }
-  if (mainWindow.webContents.isLoading()) mainWindow.webContents.once('did-finish-load', sendError)
-  else sendError()
-  mainWindow.show()
-  mainWindow.focus()
+  publishEnglishEvent('youtube:transcript-error', { message })
+  void showUnifiedRoute('/english/youtube')
 }
 
 async function openPopup(payload: OpenPopupPayload, point: Electron.Point, focus = true): Promise<void> {
@@ -427,58 +426,96 @@ function showSetupWindow(message?: string): void {
   setup.focus()
 }
 
+
+// Both the legacy popup IPC and the web gateway use the exact same validators
+// and business operations. Only the progress/event sink depends on transport.
+function registerSharedOperation(name: string, handler: (context: EnglishContext, ...args: any[]) => unknown): void {
+  registerEnglishOperation(name, handler)
+  ipcMain.handle(name, (event, ...args: unknown[]) => invokeEnglishOperation(name, {
+    sender: {
+      isDestroyed: () => event.sender.isDestroyed(),
+      send: (channel, data) => {
+        if (!event.sender.isDestroyed()) event.sender.send(channel, data)
+        publishEnglishEvent(channel, data)
+      }
+    }
+  }, args))
+}
+
+async function loadUnifiedPage(window: BrowserWindow, route = '/portal'): Promise<void> {
+  const current = await startInvestmentService()
+  if (window.isDestroyed()) return
+  if (current.state === 'ready' && current.url) {
+    await window.loadURL(current.url + route)
+  } else {
+    const message = (current.message ?? 'Unus 服務未啟動').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
+    await window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<h1>Unus</h1><p>${message}</p><p>修正後由系統匣重新開啟 Unus 即可重試。</p>`)}`)
+  }
+}
+
+async function showUnifiedRoute(route: string): Promise<void> {
+  const mainWindow = createWindow('app')
+  await loadUnifiedPage(mainWindow, route)
+  mainWindow.show(); mainWindow.focus()
+}
+
 function registerIpc(): void {
+  registerSharedOperation('system:platform', () => process.platform)
   ipcMain.handle('investment:status', () => getInvestmentStatus())
-  ipcMain.handle('investment:open-window', () => openInvestmentWindow())
+  ipcMain.handle('investment:open-window', () => { showMainWindow(); return getInvestmentStatus() })
   ipcMain.handle('investment:open-browser', () => openInvestmentBrowser())
   ipcMain.on('debug:log', (_event, payload: unknown) => {
     if (!isDevelopment || !isDebugPayload(payload)) return
-    console.log(`[Lexicon debug][renderer:${payload.scope}] ${payload.event}`, payload.details)
+    console.log(`[Unus debug][renderer:${payload.scope}] ${payload.event}`, payload.details)
   })
 
-  ipcMain.handle('ielts-workspace:load', (_event, initialWorkspace: unknown) => {
+  registerSharedOperation('ielts-workspace:load', (_event, initialWorkspace: unknown) => {
     const workspace = parseIeltsWorkspace(initialWorkspace)
     return getIeltsWorkspaceStore().load(workspace)
   })
 
-  ipcMain.handle('ielts-workspace:save-notes', (_event, notes: unknown) => {
+  registerSharedOperation('ielts-workspace:save-notes', (_event, notes: unknown) => {
     if (typeof notes !== 'string') throw new Error('筆記格式不正確')
     getIeltsWorkspaceStore().saveNotes(notes)
   })
 
-  ipcMain.handle('ielts-workspace:save-directions', (_event, directions: unknown) => {
+  registerSharedOperation('ielts-workspace:save-directions', (_event, directions: unknown) => {
     const workspace = parseIeltsWorkspace({ notes: '', directions })
     getIeltsWorkspaceStore().saveDirections(workspace.directions)
   })
 
-  ipcMain.handle('settings:get', (_event, key: unknown) => {
+  registerSharedOperation('settings:get', (_event, key: unknown) => {
     if (!isSettingKey(key)) throw new Error('設定項目不正確')
     return getIeltsWorkspaceStore().getSetting(key)
   })
 
-  ipcMain.handle('settings:set', (_event, key: unknown, value: unknown) => {
+  registerSharedOperation('settings:set', (_event, key: unknown, value: unknown) => {
     if (!isSettingKey(key) || !isSettingValue(key, value)) throw new Error('設定值不正確')
     getIeltsWorkspaceStore().setSetting(key, value)
+    if (key === 'unus-theme') {
+      getIeltsWorkspaceStore().setSetting('theme', ['light','sand','sakura','glacier','mint','clay'].includes(value) ? 'light' : 'dark')
+      publishEnglishEvent('settings:theme-changed', value)
+    }
   })
 
-  ipcMain.handle('settings:choose-backup-directory', async (event) => {
+  registerSharedOperation('settings:choose-backup-directory', async (_event) => {
     const options: Electron.OpenDialogOptions = {
       title: '選擇備份資料夾',
       properties: ['openDirectory', 'createDirectory']
     }
-    const parentWindow = BrowserWindow.fromWebContents(event.sender)
+    const parentWindow = windows.get('app')
     const result = parentWindow
       ? await dialog.showOpenDialog(parentWindow, options)
       : await dialog.showOpenDialog(options)
     return result.canceled ? undefined : result.filePaths[0]
   })
 
-  ipcMain.handle('settings:set-shortcut', (_event, shortcut: unknown) => {
+  registerSharedOperation('settings:set-shortcut', (_event, shortcut: unknown) => {
     if (typeof shortcut !== 'string' || !shortcut) return { ok: false, message: '快捷鍵格式不正確' }
     return setHotkey(shortcut)
   })
 
-  ipcMain.handle('translation:translate', async (_event, text: unknown, sessionId: unknown, mode: unknown) => {
+  registerSharedOperation('translation:translate', async (_event, text: unknown, sessionId: unknown, mode: unknown) => {
     if (modelBenchmarkInProgress) return { ok: false, message: '模型效能測試進行中，完成後再試一次。' }
     const requestId = ++nextTranslationRequestId
     const startedAt = Date.now()
@@ -518,7 +555,7 @@ function registerIpc(): void {
     }
   })
 
-  ipcMain.handle('model:status', async () => {
+  registerSharedOperation('model:status', async () => {
     const selectedFilename = getIeltsWorkspaceStore().getSetting('model')
     const selected = (await listInstalledModels(app.getPath('appData'))).find((model) => model.filename === selectedFilename)
     const status = selected
@@ -532,7 +569,7 @@ function registerIpc(): void {
     }
   })
 
-  ipcMain.handle('ielts-writing:generate', async (_event, request: unknown) => {
+  registerSharedOperation('ielts-writing:generate', async (_event, request: unknown) => {
     if (!request || typeof request !== 'object') throw new Error('寫作請求格式不正確')
     const { mode, taskType, prompt, draft } = request as Record<string, unknown>
     if ((mode !== 'outline' && mode !== 'feedback' && mode !== 'sample') || (taskType !== 'task-1' && taskType !== 'task-2')) {
@@ -545,9 +582,9 @@ function registerIpc(): void {
     return translator.generateIeltsWriting(mode, taskType, prompt, draft)
   })
 
-  ipcMain.handle('model:list', () => listInstalledModels(app.getPath('appData')))
+  registerSharedOperation('model:list', () => listInstalledModels(app.getPath('appData')))
 
-  ipcMain.handle('model:benchmarks', async () => {
+  registerSharedOperation('model:benchmarks', async () => {
     const models = await listInstalledModels(app.getPath('appData'))
     const saved = getStoredModelBenchmarks()
     return Object.fromEntries(models.flatMap((model) => {
@@ -556,7 +593,7 @@ function registerIpc(): void {
     }))
   })
 
-  ipcMain.handle('model:benchmark', async (_event, filename: unknown): Promise<ModelBenchmark> => {
+  registerSharedOperation('model:benchmark', async (_event, filename: unknown): Promise<ModelBenchmark> => {
     if (typeof filename !== 'string' || filename !== basename(filename) || !filename.toLowerCase().endsWith('.gguf')) {
       throw new Error('模型檔案格式不正確')
     }
@@ -609,17 +646,17 @@ function registerIpc(): void {
     return benchmark
   })
 
-  ipcMain.handle('model:search-huggingface', async (_event, query: unknown) => {
+  registerSharedOperation('model:search-huggingface', async (_event, query: unknown) => {
     if (typeof query !== 'string' || query.trim().length < 2 || query.length > 100) throw new Error('請輸入 2 到 100 個字元的模型名稱')
     return searchHuggingFaceModels(query)
   })
 
-  ipcMain.handle('model:list-huggingface-files', async (_event, repository: unknown) => {
+  registerSharedOperation('model:list-huggingface-files', async (_event, repository: unknown) => {
     if (typeof repository !== 'string') throw new Error('模型名稱格式不正確')
     return listHuggingFaceGgufFiles(repository)
   })
 
-  ipcMain.handle('model:select', async (_event, filename: unknown) => {
+  registerSharedOperation('model:select', async (_event, filename: unknown) => {
     if (modelBenchmarkInProgress) return { ok: false, message: '模型效能測試進行中，完成後再切換模型。' }
     if (typeof filename !== 'string' || filename !== basename(filename) || !filename.toLowerCase().endsWith('.gguf')) return { ok: false, message: '模型檔案格式不正確' }
     const models = await listInstalledModels(app.getPath('appData'))
@@ -637,13 +674,11 @@ function registerIpc(): void {
     }
   })
 
-  ipcMain.handle('model:open-download-window', () => {
-    const window = createWindow('download-model')
-    window.show()
-    window.focus()
+  registerSharedOperation('model:open-download-window', () => {
+    void showUnifiedRoute('/settings?tab=english&download=1')
   })
 
-  ipcMain.handle('model:download', async (event, request: unknown) => {
+  registerSharedOperation('model:download', async (event, request: unknown) => {
     if (modelBenchmarkInProgress) return { ok: false, message: '模型效能測試進行中，完成後再下載模型。' }
     try {
       if (!isModelDownloadRequest(request)) throw new Error('模型下載來源格式不正確')
@@ -658,6 +693,101 @@ function registerIpc(): void {
       return { ok: false, message }
     }
   })
+
+  registerSharedOperation('news:search', async (_event, query: unknown) => {
+    if (typeof query !== 'string' || query.length > 200) throw new Error('新聞關鍵字格式不正確')
+    return searchNews(query)
+  })
+
+  registerSharedOperation('news:summarize', async (_event, article: unknown) => {
+    if (!article || typeof article !== 'object') throw new Error('新聞內容格式不正確')
+    const candidate = article as { title?: unknown; description?: unknown }
+    if (typeof candidate.title !== 'string' || typeof candidate.description !== 'string') throw new Error('新聞內容格式不正確')
+    return translator.summarizeNews(candidate.title.slice(0, 500), candidate.description.slice(0, 3_000))
+  })
+
+  registerSharedOperation('news:open', async (_event, url: unknown) => {
+    if (typeof url !== 'string' || !isSafeArticleUrl(url)) throw new Error('新聞連結格式不正確')
+    await shell.openExternal(url)
+  })
+
+  registerSharedOperation('learning:dashboard', () => getLearningStore().getDashboard())
+  registerSharedOperation('history:list', () => getLearningStore().listTranslationHistory())
+  registerSharedOperation('history:delete', (_event, recordId: unknown) => {
+    if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')
+    getLearningStore().deleteTranslationRecord(recordId as number)
+  })
+
+  registerSharedOperation('youtube:control', (_event, payload: unknown) => {
+    if (!isYouTubeMessage(payload) || payload.type !== 'youtube:control') {
+      return { ok: false, message: 'YouTube 控制指令無效。' }
+    }
+    if (!youtubeBridge) return { ok: false, message: 'YouTube Extension 尚未連線。' }
+    youtubeBridge.sendToExtensions(payload as YouTubeControl)
+    return { ok: true }
+  })
+  registerSharedOperation('learning:create-from-record', async (_event, recordId: unknown) => {
+    if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')
+    const store = getLearningStore()
+    const record = store.getTranslationRecord(recordId as number)
+    const extraction = await translationJobs.submit(
+      { id: `learning-extract-${record.id}`, text: record.sourceText, direction: record.direction, priority: 'background' },
+      () => translator.extractLearningItem(record.sourceText, record.translatedText, record.direction, `learning-extract-${record.id}`)
+    )
+    return store.createItem(record.id, extraction)
+  })
+  registerSharedOperation('learning:create-from-source', async (_event, payload: unknown) => {
+    if (!payload || typeof payload !== 'object') throw new Error('學習來源格式不正確')
+    const source = payload as { sourceText?: unknown; translatedText?: unknown; direction?: unknown; sourceSurface?: unknown }
+    if (typeof source.sourceText !== 'string' || !source.sourceText.trim() || typeof source.translatedText !== 'string' || !source.translatedText.trim() || !['zh-to-en', 'en-to-zh'].includes(source.direction as string)) throw new Error('學習來源格式不正確')
+    const store = getLearningStore()
+    const sourceText = source.sourceText
+    const translatedText = source.translatedText
+    const direction = source.direction as 'zh-to-en' | 'en-to-zh'
+    const recordId = store.recordTranslation(sourceText, translatedText, direction, typeof source.sourceSurface === 'string' ? source.sourceSurface : 'learning')
+    const extraction = await translationJobs.submit(
+      { id: `learning-source-${recordId}`, text: sourceText, direction, priority: 'background' },
+      () => translator.extractLearningItem(sourceText, translatedText, direction, `learning-source-${recordId}`)
+    )
+    return store.createItem(recordId, extraction)
+  })
+  registerSharedOperation('learning:review', async (_event, payload: unknown) => {
+    if (!payload || typeof payload !== 'object') throw new Error('複習資料格式不正確')
+    const review = payload as { itemId?: unknown; exerciseType?: unknown; answer?: unknown; operationId?: unknown }
+    if (!Number.isSafeInteger(review.itemId) || !['reverse_translation', 'cloze', 'rewrite'].includes(review.exerciseType as string) || typeof review.answer !== 'string' || (review.operationId !== undefined && (typeof review.operationId !== 'string' || review.operationId.length > 100))) throw new Error('複習資料格式不正確')
+    const store = getLearningStore()
+    const item = store.getItem(review.itemId as number)
+    const extraction: LearningExtraction = { promptZh: item.promptZh, targetEn: item.targetEn, focusExpression: item.focusExpression, explanationZh: item.explanationZh, alternatives: item.alternatives, tags: item.tags }
+    const exerciseType = review.exerciseType as ReviewExerciseType
+    const answer = review.answer
+    const feedback = await translationJobs.submit(
+      { id: `learning-review-${item.id}`, text: answer, direction: 'zh-to-en', priority: 'interactive' },
+      () => translator.evaluateLearningAnswer(extraction, exerciseType, answer, `learning-review-${item.id}`)
+    )
+    return store.review(item.id, exerciseType, answer, feedback, review.operationId as string | undefined)
+  })
+  registerSharedOperation('learning:task', async (_event, payload: unknown) => {
+    if (!payload || typeof payload !== 'object') throw new Error('任務資料格式不正確')
+    const task = payload as { itemIds?: unknown; answer?: unknown; operationId?: unknown }
+    if (!Array.isArray(task.itemIds) || task.itemIds.length < 2 || task.itemIds.length > 3 || !task.itemIds.every((id) => Number.isSafeInteger(id)) || typeof task.answer !== 'string' || !task.answer.trim() || (task.operationId !== undefined && (typeof task.operationId !== 'string' || task.operationId.length > 100))) throw new Error('任務資料格式不正確')
+    const store = getLearningStore()
+    const items = task.itemIds.map((id) => store.getItem(id as number))
+    const extractions = items.map((item) => ({ promptZh: item.promptZh, targetEn: item.targetEn, focusExpression: item.focusExpression, explanationZh: item.explanationZh, alternatives: item.alternatives, tags: item.tags }))
+    const answer = task.answer
+    const feedback = await translationJobs.submit({ id: `learning-task-${Date.now()}`, text: answer, direction: 'zh-to-en', priority: 'interactive' }, () => translator.evaluateLearningTask(extractions, answer))
+    return store.reviewTask(task.itemIds as number[], answer, feedback, task.operationId as string | undefined)
+  })
+  registerSharedOperation('learning:update-preferences', (_event, payload: unknown) => {
+    if (!payload || typeof payload !== 'object') throw new Error('學習設定格式不正確')
+    const preferences = payload as { streakEnabled?: unknown; reducedMotion?: unknown }
+    if ((preferences.streakEnabled !== undefined && typeof preferences.streakEnabled !== 'boolean') || (preferences.reducedMotion !== undefined && typeof preferences.reducedMotion !== 'boolean')) throw new Error('學習設定格式不正確')
+    return getLearningStore().updatePreferences({ streakEnabled: preferences.streakEnabled as boolean | undefined, reducedMotion: preferences.reducedMotion as boolean | undefined })
+  })
+  registerSharedOperation('learning:delete-item', (_event, itemId: unknown) => {
+    if (!Number.isSafeInteger(itemId) || (itemId as number) < 1) throw new Error('學習項目格式不正確')
+    getLearningStore().deleteItem(itemId as number)
+  })
+  registerSharedOperation('learning:clear-data', () => getLearningStore().clearLearningData())
 
   ipcMain.on('popup:close', () => {
     const popup = windows.get('popup')
@@ -723,13 +853,15 @@ function isStoredModelBenchmark(value: unknown): value is ModelBenchmark {
     && typeof item.recommendation === 'string'
 }
 
-type SettingKey = 'theme' | 'backup-on-quit' | 'backup-directory' | 'shortcut' | 'model'
+type SettingKey = 'unus-theme' | 'youtube-videos' | 'theme' | 'backup-on-quit' | 'backup-directory' | 'shortcut' | 'model'
 
 function isSettingKey(value: unknown): value is SettingKey {
-  return value === 'theme' || value === 'backup-on-quit' || value === 'backup-directory' || value === 'shortcut' || value === 'model'
+  return value === 'unus-theme' || value === 'youtube-videos' || value === 'theme' || value === 'backup-on-quit' || value === 'backup-directory' || value === 'shortcut' || value === 'model'
 }
 
 function isSettingValue(key: SettingKey, value: unknown): value is string {
+  if (key === 'unus-theme') return typeof value === 'string' && ['midnight','light','ocean','terminal','violet','sand','sakura','aurora','caramel','glacier','amber','mint','bloodmoon','graphite','cyberpunk','military','polaris','glass','neon','holo','clay'].includes(value)
+  if (key === 'youtube-videos') return typeof value === 'string' && value.length <= 50000 && Array.isArray(JSON.parse(value))
   if (key === 'theme') return ['dark', 'light', 'system'].includes(value as string)
   if (key === 'backup-on-quit') return value === 'true' || value === 'false'
   return typeof value === 'string'
@@ -790,7 +922,7 @@ async function backupBeforeQuit(): Promise<void> {
       await backupInvestmentData(directory)
     }
   } catch (error) {
-    console.error('Lexicon backup failed before quit', error)
+    console.error('Unus backup failed before quit', error)
   } finally {
     shouldQuitAfterBackup = true
     app.quit()
@@ -819,105 +951,11 @@ function parseIeltsWorkspace(value: unknown): IeltsWorkspace {
     return { id: item.id, title: item.title, focus: item.focus, status: item.status as StudyDirection['status'] }
   })
 
-  ipcMain.handle('news:search', async (_event, query: unknown) => {
-    if (typeof query !== 'string' || query.length > 200) throw new Error('新聞關鍵字格式不正確')
-    return searchNews(query)
-  })
-
-  ipcMain.handle('news:summarize', async (_event, article: unknown) => {
-    if (!article || typeof article !== 'object') throw new Error('新聞內容格式不正確')
-    const candidate = article as { title?: unknown; description?: unknown }
-    if (typeof candidate.title !== 'string' || typeof candidate.description !== 'string') throw new Error('新聞內容格式不正確')
-    return translator.summarizeNews(candidate.title.slice(0, 500), candidate.description.slice(0, 3_000))
-  })
-
-  ipcMain.handle('news:open', async (_event, url: unknown) => {
-    if (typeof url !== 'string' || !isSafeArticleUrl(url)) throw new Error('新聞連結格式不正確')
-    await shell.openExternal(url)
-  })
-
-  ipcMain.handle('learning:dashboard', () => getLearningStore().getDashboard())
-  ipcMain.handle('history:list', () => getLearningStore().listTranslationHistory())
-  ipcMain.handle('history:delete', (_event, recordId: unknown) => {
-    if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')
-    getLearningStore().deleteTranslationRecord(recordId as number)
-  })
-
-  ipcMain.handle('youtube:control', (_event, payload: unknown) => {
-    if (!isYouTubeMessage(payload) || payload.type !== 'youtube:control') {
-      return { ok: false, message: 'YouTube 控制指令無效。' }
-    }
-    if (!youtubeBridge) return { ok: false, message: 'YouTube Extension 尚未連線。' }
-    youtubeBridge.sendToExtensions(payload as YouTubeControl)
-    return { ok: true }
-  })
-  ipcMain.handle('learning:create-from-record', async (_event, recordId: unknown) => {
-    if (!Number.isSafeInteger(recordId) || (recordId as number) < 1) throw new Error('翻譯紀錄格式不正確')
-    const store = getLearningStore()
-    const record = store.getTranslationRecord(recordId as number)
-    const extraction = await translationJobs.submit(
-      { id: `learning-extract-${record.id}`, text: record.sourceText, direction: record.direction, priority: 'background' },
-      () => translator.extractLearningItem(record.sourceText, record.translatedText, record.direction, `learning-extract-${record.id}`)
-    )
-    return store.createItem(record.id, extraction)
-  })
-  ipcMain.handle('learning:create-from-source', async (_event, payload: unknown) => {
-    if (!payload || typeof payload !== 'object') throw new Error('學習來源格式不正確')
-    const source = payload as { sourceText?: unknown; translatedText?: unknown; direction?: unknown; sourceSurface?: unknown }
-    if (typeof source.sourceText !== 'string' || !source.sourceText.trim() || typeof source.translatedText !== 'string' || !source.translatedText.trim() || !['zh-to-en', 'en-to-zh'].includes(source.direction as string)) throw new Error('學習來源格式不正確')
-    const store = getLearningStore()
-    const sourceText = source.sourceText
-    const translatedText = source.translatedText
-    const direction = source.direction as 'zh-to-en' | 'en-to-zh'
-    const recordId = store.recordTranslation(sourceText, translatedText, direction, typeof source.sourceSurface === 'string' ? source.sourceSurface : 'learning')
-    const extraction = await translationJobs.submit(
-      { id: `learning-source-${recordId}`, text: sourceText, direction, priority: 'background' },
-      () => translator.extractLearningItem(sourceText, translatedText, direction, `learning-source-${recordId}`)
-    )
-    return store.createItem(recordId, extraction)
-  })
-  ipcMain.handle('learning:review', async (_event, payload: unknown) => {
-    if (!payload || typeof payload !== 'object') throw new Error('複習資料格式不正確')
-    const review = payload as { itemId?: unknown; exerciseType?: unknown; answer?: unknown; operationId?: unknown }
-    if (!Number.isSafeInteger(review.itemId) || !['reverse_translation', 'cloze', 'rewrite'].includes(review.exerciseType as string) || typeof review.answer !== 'string' || (review.operationId !== undefined && (typeof review.operationId !== 'string' || review.operationId.length > 100))) throw new Error('複習資料格式不正確')
-    const store = getLearningStore()
-    const item = store.getItem(review.itemId as number)
-    const extraction: LearningExtraction = { promptZh: item.promptZh, targetEn: item.targetEn, focusExpression: item.focusExpression, explanationZh: item.explanationZh, alternatives: item.alternatives, tags: item.tags }
-    const exerciseType = review.exerciseType as ReviewExerciseType
-    const answer = review.answer
-    const feedback = await translationJobs.submit(
-      { id: `learning-review-${item.id}`, text: answer, direction: 'zh-to-en', priority: 'interactive' },
-      () => translator.evaluateLearningAnswer(extraction, exerciseType, answer, `learning-review-${item.id}`)
-    )
-    return store.review(item.id, exerciseType, answer, feedback, review.operationId as string | undefined)
-  })
-  ipcMain.handle('learning:task', async (_event, payload: unknown) => {
-    if (!payload || typeof payload !== 'object') throw new Error('任務資料格式不正確')
-    const task = payload as { itemIds?: unknown; answer?: unknown; operationId?: unknown }
-    if (!Array.isArray(task.itemIds) || task.itemIds.length < 2 || task.itemIds.length > 3 || !task.itemIds.every((id) => Number.isSafeInteger(id)) || typeof task.answer !== 'string' || !task.answer.trim() || (task.operationId !== undefined && (typeof task.operationId !== 'string' || task.operationId.length > 100))) throw new Error('任務資料格式不正確')
-    const store = getLearningStore()
-    const items = task.itemIds.map((id) => store.getItem(id as number))
-    const extractions = items.map((item) => ({ promptZh: item.promptZh, targetEn: item.targetEn, focusExpression: item.focusExpression, explanationZh: item.explanationZh, alternatives: item.alternatives, tags: item.tags }))
-    const answer = task.answer
-    const feedback = await translationJobs.submit({ id: `learning-task-${Date.now()}`, text: answer, direction: 'zh-to-en', priority: 'interactive' }, () => translator.evaluateLearningTask(extractions, answer))
-    return store.reviewTask(task.itemIds as number[], answer, feedback, task.operationId as string | undefined)
-  })
-  ipcMain.handle('learning:update-preferences', (_event, payload: unknown) => {
-    if (!payload || typeof payload !== 'object') throw new Error('學習設定格式不正確')
-    const preferences = payload as { streakEnabled?: unknown; reducedMotion?: unknown }
-    if ((preferences.streakEnabled !== undefined && typeof preferences.streakEnabled !== 'boolean') || (preferences.reducedMotion !== undefined && typeof preferences.reducedMotion !== 'boolean')) throw new Error('學習設定格式不正確')
-    return getLearningStore().updatePreferences({ streakEnabled: preferences.streakEnabled as boolean | undefined, reducedMotion: preferences.reducedMotion as boolean | undefined })
-  })
-  ipcMain.handle('learning:delete-item', (_event, itemId: unknown) => {
-    if (!Number.isSafeInteger(itemId) || (itemId as number) < 1) throw new Error('學習項目格式不正確')
-    getLearningStore().deleteItem(itemId as number)
-  })
-  ipcMain.handle('learning:clear-data', () => getLearningStore().clearLearningData())
-
   return { notes: candidate.notes, directions }
 }
 
 function sendModelReady(): void {
+  publishEnglishEvent('model:ready')
   windows.forEach((window) => {
     if (!window.isDestroyed()) window.webContents.send('model:ready')
   })
@@ -930,7 +968,7 @@ function formatError(error: unknown, fallback: string): string {
 
 function debugLog(scope: string, event: string, details: Record<string, unknown> = {}): void {
   if (!isDevelopment) return
-  writeDebug('log', `[Lexicon debug][main][${scope}] ${event}`, details)
+  writeDebug('log', `[Unus debug][main][${scope}] ${event}`, details)
 }
 
 function debugError(
@@ -941,7 +979,7 @@ function debugError(
 ): void {
   if (!isDevelopment) return
   const message = error instanceof Error ? error.message : String(error)
-  writeDebug('error', `[Lexicon debug][main][${scope}] ${event}`, { ...details, message })
+  writeDebug('error', `[Unus debug][main][${scope}] ${event}`, { ...details, message })
 }
 
 function writeDebug(method: 'log' | 'error', message: string, details: Record<string, unknown>): void {

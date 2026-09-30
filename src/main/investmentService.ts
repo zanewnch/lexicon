@@ -1,4 +1,5 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, shell } from 'electron'
+import { getEnglishConnection } from './englishService'
 import { spawn, type ChildProcess } from 'node:child_process'
 import { chmod, copyFile, cp, mkdir, readdir, rename, rmdir, rm } from 'node:fs/promises'
 import { createWriteStream, existsSync } from 'node:fs'
@@ -14,7 +15,7 @@ export type InvestmentStatus = { state: 'starting' | 'ready' | 'error'; url?: st
 let status: InvestmentStatus = { state: 'starting' }
 let startPromise: Promise<InvestmentStatus> | undefined
 let child: ChildProcess | undefined
-let investmentWindow: BrowserWindow | undefined
+let frontendChild: ChildProcess | undefined
 
 function projectRoot(): string {
   return resolve(__dirname, '../../investment')
@@ -163,6 +164,7 @@ async function waitForReady(url: string, process: ChildProcess, nonce: string): 
 export function getInvestmentStatus(): InvestmentStatus { return status }
 
 export function startInvestmentService(): Promise<InvestmentStatus> {
+  if (status.state === 'error') startPromise = undefined
   if (startPromise) return startPromise
   startPromise = (async () => {
     status = { state: 'starting' }
@@ -170,16 +172,25 @@ export function startInvestmentService(): Promise<InvestmentStatus> {
       await prepareData()
       const port = await availablePort()
       const nonce = randomUUID()
-      const url = `http://127.0.0.1:${port}`
+      const backendUrl = `http://127.0.0.1:${port}`
+      const development = !app.isPackaged && Boolean(process.env.ELECTRON_RENDERER_URL)
+      const frontendPort = development ? await availablePort() : port
+      const url = `http://127.0.0.1:${frontendPort}`
       const root = projectRoot()
       const frontendDist = app.isPackaged ? join(process.resourcesPath, 'investment-web') : join(root, 'frontend', 'dist')
-      if (!existsSync(join(frontendDist, 'index.html'))) throw new Error('Investment frontend is not built')
+      if (!development && !existsSync(join(frontendDist, 'index.html'))) throw new Error('Investment frontend is not built')
       const executable = app.isPackaged
         ? join(process.resourcesPath, 'investment-service', process.platform === 'win32' ? 'investment-service.exe' : 'investment-service')
         : process.env.LEXICON_INVESTMENT_PYTHON || 'python'
       const args = app.isPackaged ? [String(port)] : [join(root, 'backend', 'lexicon_service.py'), String(port)]
+      const english = getEnglishConnection()
+      if (!english) throw new Error('English service is not ready')
       const environment = {
         ...process.env,
+        PYTHONIOENCODING: 'utf-8',
+        UNUS_FRONTEND_ORIGIN: url,
+        UNUS_ENGLISH_SERVICE_URL: english.url,
+        UNUS_ENGLISH_SERVICE_TOKEN: english.token,
         LEXICON_INVESTMENT_DATA_DIR: dataDirectory(),
         LEXICON_INVESTMENT_HEALTH_NONCE: nonce,
         LEXICON_INVESTMENT_FRONTEND_DIST: frontendDist,
@@ -195,39 +206,45 @@ export function startInvestmentService(): Promise<InvestmentStatus> {
       const spawnFailure = new Promise<never>((_resolve, reject) => child?.once('error', reject))
       child.stdout?.pipe(log, { end: false })
       child.stderr?.pipe(log, { end: false })
-      child.once('exit', () => { if (status.state === 'ready') status = { state: 'error', message: '投資服務已停止' }; startPromise = undefined; log.end() })
-      await Promise.race([waitForReady(url, child, nonce), spawnFailure])
+      const backendProcess = child
+      child.once('exit', () => {
+        if (child === backendProcess) {
+          if (status.state === 'ready') status = { state: 'error', message: 'Unus 服務已停止，請從系統匣重新開啟。' }
+          frontendChild?.kill()
+          frontendChild = undefined
+          child = undefined
+          startPromise = undefined
+        }
+        log.end()
+      })
+      await Promise.race([waitForReady(backendUrl, child, nonce), spawnFailure])
+      if (development) {
+        frontendChild = spawn(process.execPath, [join(root, 'frontend', 'node_modules', 'vite', 'bin', 'vite.js'), '--host', '127.0.0.1', '--port', String(frontendPort), '--strictPort'], {
+          cwd: join(root, 'frontend'), windowsHide: true,
+          env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', UNUS_BACKEND_URL: backendUrl }, stdio: ['ignore', 'pipe', 'pipe']
+        })
+        frontendChild.stdout?.pipe(log, { end: false }); frontendChild.stderr?.pipe(log, { end: false })
+        const viteProcess = frontendChild
+        frontendChild.once('exit', () => {
+          if (frontendChild === viteProcess && status.state === 'ready') {
+            status = { state: 'error', message: 'Unus 前端已停止，請從系統匣重新開啟。' }
+            stopInvestmentService()
+            startPromise = undefined
+          }
+        })
+        const failure = new Promise<never>((_resolve, reject) => frontendChild?.once('error', reject))
+        await Promise.race([waitForReady(url, frontendChild, nonce), failure])
+      }
       status = { state: 'ready', url }
     } catch (error) {
       status = { state: 'error', message: error instanceof Error ? error.message : String(error) }
+      frontendChild?.kill(); frontendChild = undefined
       child?.kill()
       child = undefined
     }
     return status
   })()
   return startPromise
-}
-
-export async function openInvestmentWindow(): Promise<InvestmentStatus> {
-  const current = await startInvestmentService()
-  if (current.state !== 'ready' || !current.url) return current
-  if (!investmentWindow || investmentWindow.isDestroyed()) {
-    investmentWindow = new BrowserWindow({
-      width: 1280, height: 850, minWidth: 900, minHeight: 600, title: 'Lexicon · 投資',
-      webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
-    })
-    investmentWindow.webContents.setWindowOpenHandler(({ url }) => {
-      if (url.startsWith('https://')) void shell.openExternal(url)
-      return { action: 'deny' }
-    })
-    investmentWindow.webContents.on('will-navigate', (event, url) => {
-      if (!url.startsWith(`${current.url}/`)) event.preventDefault()
-    })
-    await investmentWindow.loadURL(current.url)
-  }
-  investmentWindow.show()
-  investmentWindow.focus()
-  return current
 }
 
 export async function openInvestmentBrowser(): Promise<InvestmentStatus> {
@@ -237,6 +254,7 @@ export async function openInvestmentBrowser(): Promise<InvestmentStatus> {
 }
 
 export function stopInvestmentService(): void {
+  frontendChild?.kill(); frontendChild = undefined
   if (child) {
     const process = child
     process.stdin?.end('shutdown\n')

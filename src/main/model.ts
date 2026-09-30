@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
 import { access, mkdir, readdir, rename, rm, stat, statfs } from 'node:fs/promises'
 import { basename, join } from 'node:path'
-import type { WebContents } from 'electron'
+import type { EnglishSender } from './englishService'
 
 export type CuratedModel = {
   id: string
@@ -194,7 +194,7 @@ function formatBytes(bytes: number): string {
   return `${bytes} bytes`
 }
 
-function notifyProgress(contents: WebContents | undefined, progress: DownloadProgress): void {
+function notifyProgress(contents: EnglishSender | undefined, progress: DownloadProgress): void {
   if (contents && !contents.isDestroyed()) {
     contents.send('model:download-progress', progress)
   }
@@ -222,7 +222,7 @@ function resolveDownload(request: ModelDownloadRequest | undefined): { filename:
   return { filename, url: parsed.toString() }
 }
 
-async function downloadModelInternal(appDataPath: string, request?: ModelDownloadRequest, contents?: WebContents): Promise<ModelStatus> {
+async function downloadModelInternal(appDataPath: string, request?: ModelDownloadRequest, contents?: EnglishSender): Promise<ModelStatus> {
   const source = resolveDownload(request)
   const modelDirectory = getModelDirectory(appDataPath)
   const modelPath = getModelPathForFilename(appDataPath, source.filename)
@@ -303,7 +303,7 @@ async function downloadModelInternal(appDataPath: string, request?: ModelDownloa
   }
 }
 
-export function downloadModel(appDataPath: string, request?: ModelDownloadRequest, contents?: WebContents): Promise<ModelStatus> {
+export function downloadModel(appDataPath: string, request?: ModelDownloadRequest, contents?: EnglishSender): Promise<ModelStatus> {
   if (!activeDownload) {
     activeDownload = downloadModelInternal(appDataPath, request, contents).finally(() => {
       activeDownload = undefined

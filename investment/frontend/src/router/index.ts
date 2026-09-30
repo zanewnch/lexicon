@@ -17,7 +17,7 @@ export function setupRouter(): Router {
   setPermissionGuard(router)
 
   router.afterEach(() => {
-    document.title = 'Pulse'
+    document.title = 'Unus'
   })
 
   return router

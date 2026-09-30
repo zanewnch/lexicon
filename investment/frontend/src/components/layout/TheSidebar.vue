@@ -16,6 +16,10 @@ import { ref, computed, markRaw, type Component } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Home,
+  Languages,
+  Youtube,
+  History,
+  Speech,
   Radar,
   ShoppingCart,
   Eye,
@@ -139,6 +143,17 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    title: '英文學習',
+    items: [
+      { icon: markRaw(Languages), iconColor: '#60a5fa', label: '翻譯', path: '/english/translate' },
+      { icon: markRaw(GraduationCap), iconColor: '#22c55e', label: '今日學習', path: '/english/learn' },
+      { icon: markRaw(Youtube), iconColor: '#ef4444', label: 'YouTube', path: '/english/youtube' },
+      { icon: markRaw(Speech), iconColor: '#a78bfa', label: '雅思練習', path: '/english/ielts' },
+      { icon: markRaw(History), iconColor: '#f59e0b', label: '搜尋紀錄', path: '/english/history' },
+      { icon: markRaw(Newspaper), iconColor: '#06b6d4', label: '英文新聞', path: '/english/news' },
+    ],
+  },
+  {
     title: '說明 / 設定',
     items: [
       { icon: markRaw(GraduationCap), iconColor: '#38bdf8', label: '學習地圖', path: '/learning' },
@@ -242,7 +257,7 @@ function onDoubleClick() {
           </linearGradient>
         </defs>
       </svg>
-      <span v-show="!collapsed" class="sidebar__logo-text">Pulse</span>
+      <span v-show="!collapsed" class="sidebar__logo-text">Unus</span>
     </div>
 
     <nav class="sidebar__nav">

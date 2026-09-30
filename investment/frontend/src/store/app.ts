@@ -1,3 +1,4 @@
+import { englishApi, onEnglishTheme } from '@/api/english'
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 
@@ -96,7 +97,19 @@ export const useAppStore = defineStore('app', () => {
    */
   function setTheme(id: ThemeId) {
     currentTheme.value = id
+    void englishApi.setSetting('unus-theme', id).catch(() => {})
   }
+
+  async function syncSharedTheme() {
+    try {
+      const saved = await englishApi.getSetting('unus-theme')
+      if (saved && themes.some((theme) => theme.id === saved)) currentTheme.value = saved as ThemeId
+      else await englishApi.setSetting('unus-theme', currentTheme.value)
+    } catch { /* The connection banner offers retry while the service starts. */ }
+  }
+  onEnglishTheme((id) => { if (themes.some((theme) => theme.id === id)) currentTheme.value = id as ThemeId })
+  void syncSharedTheme()
+
 
   return {
     currentTheme, setTheme,

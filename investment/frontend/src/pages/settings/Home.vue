@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import TabBar from '@/components/ui/TabBar.vue'
 import SettingsAPI from '@/features/settings/components/SettingsAPI.vue'
 import SettingsTrading from '@/features/settings/components/SettingsTrading.vue'
@@ -8,12 +8,20 @@ import SettingsAlerts from '@/features/settings/components/SettingsAlerts.vue'
 import SettingsDisplay from '@/features/settings/components/SettingsDisplay.vue'
 import SettingsProfile from '@/features/settings/components/SettingsProfile.vue'
 
+import { useRoute, useRouter } from 'vue-router'
+import EnglishSettings from '@/features/english/components/EnglishSettings.vue'
+import '@/features/english/english.scss'
+const route = useRoute()
+const router = useRouter()
 const tabs = [
   { key: 'general', label: '一般設定' },
   { key: 'profile', label: '個人資料' },
+  { key: 'english', label: '英文平台' },
 ]
 
-const activeTab = ref('general')
+const activeTab = ref(['general', 'profile', 'english'].includes(String(route.query.tab)) ? String(route.query.tab) : 'general')
+watch(activeTab, (tab) => void router.replace({ query: { ...route.query, tab } }))
+watch(() => route.query.tab, (tab) => { activeTab.value = ['general', 'profile', 'english'].includes(String(tab)) ? String(tab) : 'general' })
 </script>
 
 <template>
@@ -32,6 +40,7 @@ const activeTab = ref('general')
       <SettingsDisplay />
     </div>
 
+    <div v-else-if="activeTab === 'english'" class="english-workspace"><EnglishSettings /></div>
     <div v-else-if="activeTab === 'profile'">
       <SettingsProfile />
     </div>

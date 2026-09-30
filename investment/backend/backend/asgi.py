@@ -21,7 +21,7 @@ application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": OriginValidator(
         AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),
-        [f"http://127.0.0.1:{os.environ['LEXICON_INVESTMENT_PORT']}"]
+        [os.environ.get('UNUS_FRONTEND_ORIGIN', f"http://127.0.0.1:{os.environ['LEXICON_INVESTMENT_PORT']}")]
         if os.environ.get('LEXICON_INVESTMENT_PORT') else ['http://localhost:5173', 'http://127.0.0.1:5173'],
     ),
 })
