@@ -22,7 +22,7 @@ export async function searchNews(query: string): Promise<NewsArticle[]> {
   try {
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'Lexicon/0.1 news reader' }
+      headers: { 'User-Agent': 'Unus/0.1 news reader' }
     })
     if (!response.ok) throw new Error(`新聞來源暫時無法使用（${response.status}）`)
     return parseNewsRss(await response.text()).slice(0, 20)

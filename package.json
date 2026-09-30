@@ -1,8 +1,8 @@
 {
-  "name": "lexicon",
+  "name": "unus",
   "version": "0.1.0",
   "private": true,
-  "description": "A lightweight local-LLM desktop dictionary.",
+  "description": "A private, local-first personal workspace.",
   "main": "./out/main/index.js",
   "type": "module",
   "scripts": {

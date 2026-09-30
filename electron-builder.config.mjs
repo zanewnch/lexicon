@@ -2,7 +2,7 @@ const isMacHost = process.platform === 'darwin'
 
 export default {
   appId: 'com.lexicon.app',
-  productName: 'Lexicon',
+  productName: 'Unus',
   directories: { output: 'dist' },
   files: ['out/**/*', 'package.json'],
   asarUnpack: ['node_modules/node-llama-cpp/**'],

@@ -34,7 +34,7 @@ function getTranslationSystemPrompt(direction: TranslationDirection): string {
 - "WeeklyProgressController" → "用來處理每週進度相關操作的控制器。"
 - "[FromBody] SubmitWeeklyProgressRequest request" → "從請求主體取得的每週進度提交資料。"`
 
-  return `You are Lexicon, a contextual translator.
+  return `You are Unus, a contextual translator.
 Translate the user's ${sourceLanguage} selection into a natural, idiomatic ${targetLanguage} phrase or short sentence that someone can use immediately.
 
 First infer the likely use from the selection itself:
@@ -51,7 +51,7 @@ Do not show or describe your reasoning.`
 }
 
 function getLookupSystemPrompt(): string {
-  return `You are Lexicon, an English learner's dictionary for Traditional Chinese speakers.
+  return `You are Unus, an English learner's dictionary for Traditional Chinese speakers.
 For the English word or short phrase the user provides, return exactly one valid JSON object and nothing else. Do not use Markdown or code fences.
 
 Use this exact schema:
@@ -149,7 +149,7 @@ export class TranslationEngine {
           this.selectedBackend = candidate.backend
           this.runtimeState = 'ready'
 
-          writeLog('info', `[Lexicon] Gemma 4 compute backend: ${candidate.backend}`)
+          writeLog('info', `[Unus] Gemma 4 compute backend: ${candidate.backend}`)
           return
         } catch (error) {
           lastError = error
@@ -157,7 +157,7 @@ export class TranslationEngine {
           await context?.dispose()
           await model?.dispose()
           await llama?.dispose()
-          console.warn(`[Lexicon] ${candidate.backend} backend unavailable; trying the next backend`, error)
+          console.warn(`[Unus] ${candidate.backend} backend unavailable; trying the next backend`, error)
         }
       }
 
@@ -509,7 +509,7 @@ function parseReviewFeedback(response: string, fallback: Omit<ReviewFeedback, 'n
 function debugError(event: string, error: unknown, details: Record<string, unknown> = {}): void {
   if (!isDevelopment) return
   const message = error instanceof Error ? error.message : String(error)
-  writeLog('error', `[Lexicon debug][llm] ${event}`, { ...details, message })
+  writeLog('error', `[Unus debug][llm] ${event}`, { ...details, message })
 }
 
 function writeLog(

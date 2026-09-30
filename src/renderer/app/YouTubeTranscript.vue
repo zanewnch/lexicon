@@ -231,7 +231,7 @@ onBeforeUnmount(() => unsubs.forEach((unsubscribe) => unsubscribe()))
   <div v-else class="youtube-empty">
     <div class="youtube-empty-mark">▶</div>
     <div class="text-h5">把 YouTube 變成你的英文課本</div>
-    <div class="text-body2 text-grey-5 q-mt-sm">在 YouTube 開啟 Lexicon Extension，再選擇「閱讀完整逐字稿」。你會在這裡得到同步字幕、單字查詢與逐句練習。</div>
+    <div class="text-body2 text-grey-5 q-mt-sm">在 YouTube 開啟 Unus Extension，再選擇「閱讀完整逐字稿」。你會在這裡得到同步字幕、單字查詢與逐句練習。</div>
     <q-list v-if="recentVideos.length" bordered separator class="youtube-recent-list q-mt-xl text-left"><q-item v-for="video in recentVideos" :key="video.videoId"><q-item-section><q-item-label>{{ video.title }}</q-item-label><q-item-label caption>{{ video.favorite ? '已收藏' : '最近觀看' }} · {{ timestamp(video.lastPositionMs) }}</q-item-label></q-item-section><q-item-section side><q-icon v-if="video.favorite" name="bookmark" color="primary" /></q-item-section></q-item></q-list>
   </div>
 </template>

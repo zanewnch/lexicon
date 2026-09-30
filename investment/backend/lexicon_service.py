@@ -1,4 +1,4 @@
-"""Run the bundled Django/Channels investment service under Lexicon."""
+"""Run the bundled Django/Channels investment service under Unus."""
 
 import os
 import sys

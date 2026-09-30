@@ -24,7 +24,7 @@ export async function registerMacYouTubeNativeHost(): Promise<void> {
   await mkdir(manifestDirectory, { recursive: true })
   await writeFile(join(manifestDirectory, `${HOST_NAME}.json`), `${JSON.stringify({
     name: HOST_NAME,
-    description: 'Lexicon YouTube translation bridge',
+    description: 'Unus YouTube translation bridge',
     path: hostPath,
     type: 'stdio',
     allowed_origins: [`chrome-extension://${EXTENSION_ID}/`]

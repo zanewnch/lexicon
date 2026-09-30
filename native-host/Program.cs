@@ -15,7 +15,7 @@ try
 }
 catch
 {
-    await WriteNativeMessageAsync(new { type = "transcript:error", videoId = "", code = "lexicon-unavailable", message = "找不到 Lexicon。請先啟動或重新安裝 Lexicon。" });
+    await WriteNativeMessageAsync(new { type = "transcript:error", videoId = "", code = "lexicon-unavailable", message = "找不到 Unus。請先啟動或重新安裝 Unus。" });
     return;
 }
 await using var bridgeStream = bridge;

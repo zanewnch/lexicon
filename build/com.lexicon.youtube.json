@@ -1,6 +1,6 @@
 {
   "name": "com.lexicon.youtube",
-  "description": "Lexicon YouTube translation bridge",
+  "description": "Unus YouTube translation bridge",
   "path": "LexiconNativeHost.exe",
   "type": "stdio",
   "allowed_origins": [
