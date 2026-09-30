@@ -1,11 +1,11 @@
-# Lexicon 英文學習產品設計
+# Unus 英文學習產品設計
 
 > 狀態：功能設計稿（2026-07-17）  
 > 產品前提：既有本機 AI 模型、即時中英翻譯、全域快捷鍵、YouTube 字幕翻譯與 SQLite 本機資料庫。
 
 ## 1. 產品定位
 
-**Lexicon 不是翻譯器加上單字卡，而是將使用者為了完成真實任務而發生的翻譯，轉成可回想、可輸出、可再次使用的個人英文能力。**
+**Unus 不是翻譯器加上單字卡，而是將使用者為了完成真實任務而發生的翻譯，轉成可回想、可輸出、可再次使用的個人英文能力。**
 
 核心使用者是需要讀、寫、聽或說英文的繁中使用者；他們已會在工作、聊天、影片與考試情境查翻譯，但查完後通常沒有留下可複習的學習迴路。
 
@@ -26,7 +26,7 @@
 | 回饋只指出下一步 | AI 對使用者產出的回饋先肯定可溝通處，再只挑 1–2 個最影響自然度／正確性的修正。 | 第二語言 corrective feedback 的統合分析支持其在 SLA 的效果，但效果受情境與形式影響。 [Wiley](https://onlinelibrary.wiley.com/doi/full/10.1111/j.1467-9922.2010.00561.x) |
 | 以真實任務定義能力 | 成就用「能做到什麼」呈現，例如能禮貌催進度、能摘要影片，而不是用抽象等級取代任務。 | CEFR Companion Volume 採 action-oriented approach，並包含 production、interaction、mediation 與 online interaction。 [Council of Europe](https://book.coe.int/en/education-and-modern-languages/8152-common-european-framework-of-reference-for-languages-learning-teaching-assessment-companion-volume.html) |
 
-研究是設計方向，不代表每一種互動都已在 Lexicon 的特定使用者上被驗證；MVP 要以實際留存、完成率與延後測驗驗證。
+研究是設計方向，不代表每一種互動都已在 Unus 的特定使用者上被驗證；MVP 要以實際留存、完成率與延後測驗驗證。
 
 ## 3. 核心學習飛輪
 
@@ -164,7 +164,7 @@
 
 ## 7. 資料模型與本機隱私
 
-所有新資料延續現有 `%APPDATA%\\Lexicon\\lexicon.sqlite`，不需要雲端帳號。
+所有新資料延續現有 `%APPDATA%\\lexicon\\lexicon.sqlite`，不需要雲端帳號。
 
 ```text
 translation_records

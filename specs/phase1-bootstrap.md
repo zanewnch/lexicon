@@ -16,7 +16,7 @@
 3. 建立 system tray icon（electron.Tray）
    └─ 右鍵選單：Settings / ─── / Quit
 
-4. 檢查模型目錄 %APPDATA%\Lexicon\models\
+4. 檢查模型目錄 %APPDATA%\lexicon\models\
    ├─ 無 .gguf 檔案 → 開啟 Setup Wizard 視窗（強制完成才能繼續）
    └─ 有 .gguf 檔案 → 在背景開始載入設定中的模型
 
@@ -47,7 +47,7 @@ if (!lock) {
 
 ## 系統匣（System Tray）
 
-系統匣是 Windows 工作列右下角的通知區域，顯示常駐於背景執行的應用程式圖示。Lexicon 常駐於系統匣，讓使用者在不佔用工作列的情況下隨時存取設定或退出應用程式。
+系統匣是 Windows 工作列右下角的通知區域，顯示常駐於背景執行的應用程式圖示。Unus 常駐於系統匣，讓使用者在不佔用工作列的情況下隨時存取設定或退出應用程式。
 
 ### 右鍵選單
 

@@ -22,7 +22,7 @@
 
 **Part 1 — 切換已下載的 model**
 
-- 下拉選單列出 `%APPDATA%\Lexicon\models\` 內的所有 `.gguf` 檔案
+- 下拉選單列出 `%APPDATA%\lexicon\models\` 內的所有 `.gguf` 檔案
 - 顯示各模型檔案名稱 + 大小
 - 切換後自動重新載入，期間顯示「重新載入中...」
 
@@ -90,7 +90,7 @@ Curated list 目前 hardcode 以下 3 個 model，之後有需要再擴充，不
 
 - 開關（預設：關閉）
 - 實作：`app.setLoginItemSettings({ openAtLogin: true/false })`
-- 啟用時，Windows 開機後 Lexicon 靜默常駐於系統匣（不彈出任何視窗）
+- 啟用時，Windows 開機後 Unus 靜默常駐於系統匣（不彈出任何視窗）
 
 ### 介面語言
 
@@ -101,7 +101,7 @@ Curated list 目前 hardcode 以下 3 個 model，之後有需要再擴充，不
 
 ## 設定儲存
 
-- 所有設定存入 `%APPDATA%\Lexicon\config.json`
+- 所有設定存入 `%APPDATA%\lexicon\config.json`
 - 每次修改後立即寫入（不需手動按儲存）
 - 格式範例：
 

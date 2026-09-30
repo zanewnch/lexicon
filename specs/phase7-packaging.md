@@ -20,7 +20,7 @@ electron-builder --win --x64
 {
   "build": {
     "appId": "com.lexicon.app",
-    "productName": "Lexicon",
+    "productName": "Unus",
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico"
@@ -101,7 +101,7 @@ Microsoft Defender SmartScreen 已阻止未知的應用程式啟動。
 安裝時若出現 SmartScreen 警告，請：
 1. 點擊「更多資訊」
 2. 點擊「仍要執行」
-這是因為 Lexicon 尚未取得程式碼簽章憑證，並非惡意程式。
+這是因為 Unus 尚未取得程式碼簽章憑證，並非惡意程式。
 ```
 
 長期方案：取得 EV Code Signing 憑證（約 $300–500 USD/年），可消除 SmartScreen 警告。v1 不實作。
@@ -129,7 +129,7 @@ Microsoft Defender SmartScreen 已阻止未知的應用程式啟動。
 
 ```
 dist/
-└── Lexicon Setup 1.0.0.exe
+└── Unus Setup 1.0.0.exe
 ```
 
 ---

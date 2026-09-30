@@ -4,7 +4,7 @@
 
 1. 使用者在任意 Windows 視窗選取文字。
 2. 按下全域快捷鍵 `Ctrl+1`。
-3. Lexicon 暫存文字剪貼簿，使用 Windows `SendInput` 模擬 `Ctrl+C`。
+3. Unus 暫存文字剪貼簿，使用 Windows `SendInput` 模擬 `Ctrl+C`。
 4. 讀取選取內容後還原原本文字剪貼簿。
 5. Popup 顯示在目前游標附近。
 6. 有選取內容時立即翻譯；沒有選取內容時聚焦輸入框。
@@ -15,7 +15,7 @@
 
 快捷鍵使用 Electron `globalShortcut.register()`，主要支援 Windows。
 
-若快捷鍵已被其他程式佔用，Lexicon 顯示 Windows notification，並保留 system tray 與模型設定功能。
+若快捷鍵已被其他程式佔用，Unus 顯示 Windows notification，並保留 system tray 與模型設定功能。
 
 ## 選取文字
 

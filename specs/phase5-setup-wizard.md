@@ -2,7 +2,7 @@
 
 ## 觸發條件
 
-- 應用程式啟動時，若 `%APPDATA%\Lexicon\models\` 目錄下不存在任何 `.gguf` 檔案
+- 應用程式啟動時，若 `%APPDATA%\lexicon\models\` 目錄下不存在任何 `.gguf` 檔案
 - 顯示為獨立視窗（640 × 420px），置中於螢幕，無邊框
 
 ---
@@ -36,7 +36,7 @@
 ```
 ┌────────────────┬──────────────────────────────────┐
 │                │                                  │
-│  ✓  Welcome    │   Welcome to Lexicon             │
+│  ✓  Welcome    │   Welcome to Unus             │
 │                │                                  │
 │  ○  Download   │   We'll download the Qwen 2.5    │
 │                │   3B language model to get you   │
@@ -85,10 +85,10 @@
 │  ✓  Welcome    │   You're all set!                │
 │                │                                  │
 │  ✓  Download   │   Copy a word, press             │
-│                │   Ctrl+1, and Lexicon            │
+│                │   Ctrl+1, and Unus            │
 │  ✓  Done       │   will look it up instantly.     │
 │                │                                  │
-│                │              [ Start Lexicon ]   │
+│                │              [ Start Unus ]   │
 └────────────────┴──────────────────────────────────┘
 ```
 
@@ -171,7 +171,7 @@ async function getRemoteSha256(repo: string, filename: string): Promise<string> 
 ## 模型儲存路徑
 
 ```
-%APPDATA%\Lexicon\models\gemma-4-E2B-it-UD-IQ2_M.gguf
+%APPDATA%\lexicon\models\gemma-4-E2B-it-UD-IQ2_M.gguf
 ```
 
 ---

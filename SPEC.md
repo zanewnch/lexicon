@@ -1,4 +1,4 @@
-# Lexicon — 主規格
+# Unus — 主規格
 
 ## 概述
 
@@ -66,10 +66,10 @@
 
 ## 資料儲存
 
-所有使用者資料儲存於 `%APPDATA%\Lexicon\`：
+所有使用者資料儲存於 `%APPDATA%\Unus\`：
 
 ```
-%APPDATA%\Lexicon\
+%APPDATA%\Unus\
 ├── models\      # 下載的 GGUF 模型檔案
 └── config.json  # 使用者設定
 ```

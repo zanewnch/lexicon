@@ -1,7 +1,7 @@
 # Design QA
 
 - Source visual truth: `C:\Users\zanew\.codex\attachments\210f4ff9-79c6-4f21-880c-a97ad4c5d855\image-1.png`
-- Implementation evidence: Electron desktop capture from the Lexicon window, 1230 × 845, captured during this QA run.
+- Implementation evidence: Electron desktop capture from the Unus window, 1230 × 845, captured during this QA run.
 - State: dark theme, empty English-to-Chinese translation workspace.
 
 ## Findings

@@ -36,10 +36,10 @@ src/renderer/     # 各視窗的 HTML + TypeScript
 
 ## 資料目錄
 
-所有使用者資料儲存於 `%APPDATA%\Lexicon\`：
+所有使用者資料儲存於 `%APPDATA%\lexicon\`：
 
 ```
-%APPDATA%\Lexicon\
+%APPDATA%\lexicon\
 ├── models\      # 下載的 GGUF 模型檔案
 └── config.json  # 使用者設定
 ```
