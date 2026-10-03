@@ -1,0 +1,14 @@
+[
+  {"id":"E001","date":"2026-10-01","category":" 餐飲 ","item":" 早餐 ","amount":"60","status":"Paid","note":null,"tags":[" 早餐 ","餐飲","早餐"]},
+  {"id":"E002","date":"2026-10-02","category":"交通","item":"捷運","amount":"40","status":"Paid","note":" ","tags":[]},
+  {"id":"E003","date":"2026-10-02","category":"餐飲","item":"午餐","amount":"120","status":"Paid","note":"公司附近","tags":null},
+  {"id":"E004","date":"2026-10-03","category":"日用品","item":"洗衣精","amount":"180","status":"Paid","note":null,"tags":["生活"]},
+  {"id":"E005","date":"2026-10-04","category":"娛樂","item":"電影","amount":"300","status":"Pending","note":null,"tags":[]},
+  {"id":"E006","date":"2026-10-04","category":"餐飲","item":"咖啡","amount":"80","status":"Paid","note":"","tags":["咖啡"]},
+  {"id":"E007","date":"2026-09-30","category":"餐飲","item":"晚餐","amount":"150","status":"Paid","note":null,"tags":[]},
+  {"id":"E008","date":"2026-10-05","category":"交通","item":"公車","amount":"25","status":"Cancelled","note":null,"tags":[]},
+  {"id":"E009","date":"2026-10-05","category":"交通","item":"計程車","amount":"abc","status":"Paid","note":null,"tags":[]},
+  {"id":"E010","date":"2026-13-01","category":"餐飲","item":"晚餐","amount":"100","status":"Paid","note":null,"tags":[]},
+  {"id":"E011","date":"2026-10-06","category":"學習","item":"書籍","amount":"200","status":"Paid","note":"C# 練習","tags":["學習"]},
+  {"id":"E012","date":"2026-10-07","category":"餐飲","item":"晚餐","amount":"60","status":"Unknown","note":null,"tags":[]}
+]
